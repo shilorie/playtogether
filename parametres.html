@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#1a1a18"/>
+  <title>PlayTogether – Paramètres</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --dark: #1a1a18; --accent: #e8ff47; --accent2: #ff5c3a;
+      --border: rgba(255,255,255,0.07); --card: rgba(255,255,255,0.05);
+      --safe-bottom: env(safe-area-inset-bottom,0px); --safe-top: env(safe-area-inset-top,0px);
+    }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--dark); color: #fff; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+    /* VIEWS */
+    .view { display: none; flex-direction: column; min-height: 100vh; }
+    .view.active { display: flex; }
+
+    /* TOPBAR */
+    .topbar {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; gap: 12px;
+      padding: calc(14px + var(--safe-top)) 20px 14px;
+      background: rgba(26,26,24,0.97); backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .back-btn { background: none; border: none; color: #fff; font-size: 1.3rem; cursor: pointer; padding: 4px; -webkit-tap-highlight-color: transparent; }
+    .topbar-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; }
+    .topbar-sub { font-size: 0.75rem; color: rgba(255,255,255,0.35); margin-top: 1px; }
+
+    /* SCROLL */
+    .scroll-body { flex: 1; overflow-y: auto; padding: 16px 0 calc(32px + var(--safe-bottom)); }
+    .scroll-body::-webkit-scrollbar { display: none; }
+
+    /* PROFILE HEADER */
+    .profile-header {
+      display: flex; align-items: center; gap: 16px;
+      padding: 20px; margin: 0 16px 8px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .profile-header:active { opacity: 0.8; }
+    .ph-avatar { width: 58px; height: 58px; border-radius: 50%; background: rgba(232,255,71,0.1); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; flex-shrink: 0; }
+    .ph-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; }
+    .ph-sub { font-size: 0.78rem; color: rgba(255,255,255,0.4); margin-top: 3px; }
+    .ph-arrow { margin-left: auto; color: rgba(255,255,255,0.2); font-size: 1.1rem; }
+
+    /* SECTION */
+    .settings-section { margin: 20px 16px 0; }
+    .settings-section-title { font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; padding: 0 4px; }
+    .settings-group { background: var(--card); border: 1px solid var(--border); border-radius: 18px; overflow: hidden; }
+
+    /* ROW */
+    .setting-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 16px 18px; border-bottom: 1px solid var(--border);
+      cursor: pointer; transition: background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-row:active { background: rgba(255,255,255,0.04); }
+    .row-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+    .row-body { flex: 1; min-width: 0; }
+    .row-label { font-size: 0.92rem; font-weight: 500; }
+    .row-value { font-size: 0.78rem; color: rgba(255,255,255,0.35); margin-top: 2px; }
+    .row-arrow { color: rgba(255,255,255,0.2); font-size: 1rem; flex-shrink: 0; }
+
+    /* TOGGLE */
+    .toggle-wrap { display: flex; align-items: center; }
+    .toggle {
+      width: 48px; height: 28px; border-radius: 100px;
+      background: rgba(255,255,255,0.12); position: relative;
+      cursor: pointer; transition: background 0.25s; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .toggle.on { background: var(--accent); }
+    .toggle::after {
+      content: ''; position: absolute; top: 3px; left: 3px;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: #fff; transition: transform 0.25s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+    .toggle.on::after { transform: translateX(20px); }
+
+    /* SLIDER */
+    .slider-row { padding: 16px 18px; border-bottom: 1px solid var(--border); }
+    .slider-row:last-child { border-bottom: none; }
+    .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .slider-label { font-size: 0.92rem; font-weight: 500; display: flex; align-items: center; gap: 10px; }
+    .slider-label .row-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .slider-value { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--accent); }
+    input[type=range] {
+      width: 100%; -webkit-appearance: none; height: 6px;
+      border-radius: 100px; background: rgba(255,255,255,0.1); outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 22px; height: 22px;
+      border-radius: 50%; background: var(--accent); cursor: pointer;
+      box-shadow: 0 2px 8px rgba(232,255,71,0.4);
+    }
+
+    /* DANGER */
+    .danger { color: var(--accent2) !important; }
+    .danger .row-icon { background: rgba(255,92,58,0.1); }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+      display: none; align-items: flex-end; justify-content: center;
+      padding: 0 0 var(--safe-bottom);
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-sheet {
+      background: #222; border-radius: 28px 28px 0 0;
+      padding: 24px 20px calc(24px + var(--safe-bottom));
+      width: 100%; max-width: 500px;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-handle { width: 40px; height: 4px; border-radius: 100px; background: rgba(255,255,255,0.15); margin: 0 auto 20px; }
+    .modal-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; margin-bottom: 6px; }
+    .modal-sub { font-size: 0.82rem; color: rgba(255,255,255,0.4); margin-bottom: 20px; line-height: 1.5; }
+    .modal-input {
+      width: 100%; padding: 14px 16px;
+      background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 14px; color: #fff; font-family: 'DM Sans', sans-serif;
+      font-size: 1rem; outline: none; margin-bottom: 14px;
+      -webkit-appearance: none;
+    }
+    .modal-input:focus { border-color: var(--accent); }
+    .modal-input::placeholder { color: rgba(255,255,255,0.25); }
+    .modal-btn {
+      width: 100%; padding: 15px; border: none; border-radius: 14px;
+      font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem;
+      cursor: pointer; margin-bottom: 10px; -webkit-tap-highlight-color: transparent;
+    }
+    .modal-btn.primary { background: var(--accent); color: var(--dark); }
+    .modal-btn.secondary { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.5); }
+    .modal-btn.danger-btn { background: rgba(255,92,58,0.1); color: var(--accent2); border: 1px solid rgba(255,92,58,0.2); }
+    .modal-btn:active { transform: scale(0.98); }
+    .sport-option {
+      display: flex; align-items: center; gap: 12px; padding: 12px 0;
+      border-bottom: 1px solid var(--border); cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .sport-option:last-child { border-bottom: none; }
+    .sport-option.selected { color: var(--accent); }
+    .sport-check { margin-left: auto; font-size: 0.9rem; }
+
+    /* CGU VIEW */
+    .cgu-content { padding: 20px; font-size: 0.85rem; color: rgba(255,255,255,0.55); line-height: 1.8; }
+    .cgu-content h3 { font-family: 'Syne', sans-serif; font-weight: 700; color: #fff; margin: 20px 0 8px; font-size: 1rem; }
+    .cgu-content p { margin-bottom: 12px; }
+
+    /* BOTTOM NAV */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      background: rgba(26,26,24,0.97); backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border);
+      padding: 8px 0 calc(8px + var(--safe-bottom));
+      display: flex; justify-content: space-around; align-items: center;
+    }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.6rem; color: rgba(255,255,255,0.3); cursor: pointer; padding: 4px 16px; -webkit-tap-highlight-color: transparent; }
+    .nav-item .nav-icon { font-size: 1.3rem; }
+    .nav-item.active { color: var(--accent2); }
+
+    @media(min-width:600px) { .scroll-body { max-width: 500px; margin: 0 auto; } }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ MAIN SETTINGS ═══════════════ -->
+<div class="view active" id="viewMain">
+  <div class="topbar">
+    <button class="back-btn" onclick="window.history.back()">←</button>
+    <div><div class="topbar-title">Paramètres</div></div>
+  </div>
+
+  <div class="scroll-body">
+
+    <!-- Profil -->
+    <div class="profile-header" onclick="openView('viewProfil')">
+      <div class="ph-avatar">🧑‍🦱</div>
+      <div>
+        <div class="ph-name">Thomas, 26</div>
+        <div class="ph-sub">Voir et modifier mon profil</div>
+      </div>
+      <div class="ph-arrow">›</div>
+    </div>
+
+    <!-- Découverte -->
+    <div class="settings-section">
+      <div class="settings-section-title">🎯 Découverte</div>
+      <div class="settings-group">
+        <div class="slider-row">
+          <div class="slider-header">
+            <div class="slider-label"><div class="row-icon" style="background:rgba(255,92,58,0.1)">📍</div> Distance max</div>
+            <div class="slider-value" id="distVal">10 km</div>
+          </div>
+          <input type="range" min="1" max="100" value="10" id="distSlider" oninput="updateSlider('distVal',this.value,'km')"/>
+        </div>
+        <div class="slider-row">
+          <div class="slider-header">
+            <div class="slider-label"><div class="row-icon" style="background:rgba(96,165,250,0.1)">🎂</div> Tranche d'âge</div>
+            <div class="slider-value" id="ageVal">18 – 35 ans</div>
+          </div>
+          <input type="range" min="18" max="70" value="35" id="ageSlider" oninput="updateAgeSlider(this.value)"/>
+        </div>
+        <div class="setting-row" onclick="openModal('modalGenre')">
+          <div class="row-icon" style="background:rgba(232,255,71,0.1)">👥</div>
+          <div class="row-body"><div class="row-label">Je recherche</div><div class="row-value" id="genreVal">Tout le monde</div></div>
+          <div class="row-arrow">›</div>
+        </div>
+        <div class="setting-row" onclick="openView('viewSports')">
+          <div class="row-icon" style="background:rgba(74,222,128,0.1)">🏅</div>
+          <div class="row-body"><div class="row-label">Mes sports</div><div class="row-value" id="sportsVal">Tennis, Football, Running</div></div>
+          <div class="row-arrow">›</div>
+        </div>
+        <div class="setting-row" onclick="openModal('modalNiveau')">
+          <div class="row-icon" style="background:rgba(255,200,50,0.1)">📊</div>
+          <div class="row-body"><div class="row-label">Niveau affiché</div><div class="row-value" id="niveauVal">Intermédiaire</div></div>
+          <div class="row-arrow">›</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="settings-section">
+      <div class="settings-section-title">🔔 Notifications</div>
+      <div class="settings-group">
+        <div class="setting-row">
+          <div class="row-icon" style="background:rgba(255,92,58,0.1)">❤️</div>
+          <div class="row-body"><div class="row-label">Nouveaux matches</div></div>
+          <div class="toggle-wrap"><div class="toggle on" onclick="toggleSwitch(this)"></div></div>
+        </div>
+        <div class="setting-row">
+          <div class="row-icon" style="background:rgba(232,255,71,0.1)">💬</div>
+          <div class="row-body"><div class="row-label">Messages reçus</div></div>
+          <div class="toggle-wrap"><div class="toggle on" onclick="toggleSwitch(this)"></div></div>
+        </div>
+        <div class="setting-row">
+          <div class="row-icon" style="background:rgba(96,165,250,0.1)">📅</div>
+          <div class="row-body"><div class="row-label">Rappels de session</div></div>
+          <div class="toggle-wrap"><div class="toggle on" onclick="toggleSwitch(this)"></div></div>
+        </div>
+        <div class="setting-row">
+          <div class="row-icon" style="background:rgba(255,255,255,0.07)">👀</div>
+          <div class="row-body"><div class="row-label">Visites de profil</div><div class="row-value">Premium requis</div></div>
+          <div class="toggle-wrap"><div class="toggle" onclick="toggleSwitch(this)"></div></div>
+        </div>
+        <div class="setting-row">
+          <div class="row-icon" style="background:rgba(74,222,128,0.1)">📣</div>
+          <div class="row-body"><div class="row-label">Actualités PlayTogether</div></div>
+          <div class="toggle-wrap"><div class="toggle" onclick="toggleSwitch(this)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confidentialité -->
+    <div class="settings-section">
+      <div class="settings-section-title">🔒 Confidentialité</div>
+      <div class="settings-group">
+        <div class="setting-row">
+          <div class="row-icon" style="background:rgba(96,165,250,0.1)">👁️</div>
+          <div class="row-body"><div class="row-label">Profil visible</div><div class="row-value">Activé = tu apparais dans les recherches</div></div>
+          <div class="toggle-wrap"><div class="toggle on" onclick="toggleSwitch(this)"></div></div>
+        </div>
+        <div class="setting-row">
+          <div class="row-icon" style="background:rgba(255,200,50,0.1)">📍</div>
+          <div class="row-body"><div class="row-label">Afficher ma ville exacte</div></div>
+          <div class="toggle-wrap"><div class="toggle" onclick="toggleSwitch(this)"></div></div>
+        </div>
+        <div class="setting-row">
+          <div class="row-icon" style="background:rgba(74,222,128,0.1)">✓✓</div>
+          <div class="row-body"><div class="row-label">Accusés de lecture</div></div>
+          <div class="toggle-wrap"><div class="toggle on" onclick="toggleSwitch(this)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compte -->
+    <div class="settings-section">
+      <div class="settings-section-title">👤 Compte</div>
+      <div class="settings-group">
+        <div class="setting-row" onclick="openModal('modalEmail')">
+          <div class="row-icon" style="background:rgba(255,255,255,0.07)">✉️</div>
+          <div class="row-body"><div class="row-label">Adresse email</div><div class="row-value">thomas@email.fr</div></div>
+          <div class="row-arrow">›</div>
+        </div>
+        <div class="setting-row" onclick="openModal('modalPassword')">
+          <div class="row-icon" style="background:rgba(255,255,255,0.07)">🔑</div>
+          <div class="row-body"><div class="row-label">Mot de passe</div><div class="row-value">Modifié il y a 3 mois</div></div>
+          <div class="row-arrow">›</div>
+        </div>
+        <div class="setting-row" onclick="openView('viewPremium')">
+          <div class="row-icon" style="background:rgba(255,200,50,0.1)">⭐</div>
+          <div class="row-body"><div class="row-label">PlayTogether+</div><div class="row-value">Boost, likes illimités, badge vérifié · 5€/mois</div></div>
+          <div class="row-arrow" style="color:#ffd700">›</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Légal -->
+    <div class="settings-section">
+      <div class="settings-section-title">📋 Légal</div>
+      <div class="settings-group">
+        <div class="setting-row" onclick="openView('viewCGU')">
+          <div class="row-icon" style="background:rgba(255,255,255,0.07)">📄</div>
+          <div class="row-body"><div class="row-label">Conditions d'utilisation</div></div>
+          <div class="row-arrow">›</div>
+        </div>
+        <div class="setting-row" onclick="openView('viewPrivacy')">
+          <div class="row-icon" style="background:rgba(255,255,255,0.07)">🔐</div>
+          <div class="row-body"><div class="row-label">Politique de confidentialité</div></div>
+          <div class="row-arrow">›</div>
+        </div>
+        <div class="setting-row" onclick="openView('viewCookies')">
+          <div class="row-icon" style="background:rgba(255,255,255,0.07)">🍪</div>
+          <div class="row-body"><div class="row-label">Gestion des cookies</div></div>
+          <div class="row-arrow">›</div>
+        </div>
+        <div class="setting-row">
+          <div class="row-icon" style="background:rgba(255,255,255,0.07)">ℹ️</div>
+          <div class="row-body"><div class="row-label">Version</div><div class="row-value">PlayTogether v1.0.0 (bêta)</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Danger zone -->
+    <div class="settings-section">
+      <div class="settings-section-title">⚠️ Zone danger</div>
+      <div class="settings-group">
+        <div class="setting-row danger" onclick="openModal('modalDeconnect')">
+          <div class="row-icon">🚪</div>
+          <div class="row-body"><div class="row-label danger">Se déconnecter</div></div>
+          <div class="row-arrow">›</div>
+        </div>
+        <div class="setting-row danger" onclick="openModal('modalDelete')">
+          <div class="row-icon">🗑️</div>
+          <div class="row-body"><div class="row-label danger">Supprimer mon compte</div><div class="row-value">Action irréversible</div></div>
+          <div class="row-arrow">›</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="height:32px"></div>
+  </div>
+
+  <nav class="bottom-nav">
+    <div class="nav-item"><span class="nav-icon">🏠</span><span>Accueil</span></div>
+    <div class="nav-item"><span class="nav-icon">🔍</span><span>Explorer</span></div>
+    <div class="nav-item"><span class="nav-icon">❤️</span><span>Matches</span></div>
+    <div class="nav-item"><span class="nav-icon">💬</span><span>Messages</span></div>
+    <div class="nav-item active"><span class="nav-icon">👤</span><span>Profil</span></div>
+  </nav>
+</div>
+
+<!-- ═══════════════ CGU VIEW ═══════════════ -->
+<div class="view" id="viewCGU">
+  <div class="topbar"><button class="back-btn" onclick="openView('viewMain')">←</button><div><div class="topbar-title">Conditions d'utilisation</div></div></div>
+  <div class="scroll-body">
+    <div class="cgu-content">
+      <h3>1. Objet</h3><p>PlayTogether est une application de mise en relation de sportifs. L'utilisation du service implique l'acceptation des présentes conditions générales d'utilisation.</p>
+      <h3>2. Âge minimum</h3><p>L'utilisation de PlayTogether est strictement réservée aux personnes âgées de 18 ans et plus. Toute inscription d'une personne mineure est interdite et entraîne la suppression immédiate du compte.</p>
+      <h3>3. Comportement des utilisateurs</h3><p>Les utilisateurs s'engagent à respecter les autres membres, à ne pas publier de contenu offensant, à utiliser l'application de bonne foi et uniquement pour trouver des partenaires sportifs.</p>
+      <h3>4. Photos et identité</h3><p>Tu certifies que les photos uploadées te représentent réellement. Toute usurpation d'identité entraîne la suppression définitive du compte et peut faire l'objet de poursuites judiciaires.</p>
+      <h3>5. Responsabilité</h3><p>PlayTogether met en relation des sportifs mais n'est pas responsable des rencontres physiques. Nous recommandons de toujours se retrouver dans des lieux publics pour les premières sessions sportives.</p>
+      <h3>6. Signalement</h3><p>Tout comportement inapproprié peut et doit être signalé via le bouton de signalement disponible sur chaque profil. PlayTogether s'engage à traiter chaque signalement sous 24h.</p>
+      <h3>7. Propriété intellectuelle</h3><p>Le contenu de l'application (logo, design, textes) est la propriété exclusive de PlayTogether. Toute reproduction sans autorisation est interdite.</p>
+      <h3>8. Modification des CGU</h3><p>PlayTogether se réserve le droit de modifier les présentes CGU à tout moment. Les utilisateurs seront informés par email de toute modification importante.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PRIVACY VIEW ═══════════════ -->
+<div class="view" id="viewPrivacy">
+  <div class="topbar"><button class="back-btn" onclick="openView('viewMain')">←</button><div><div class="topbar-title">Politique de confidentialité</div></div></div>
+  <div class="scroll-body">
+    <div class="cgu-content">
+      <h3>Données collectées</h3><p>Nous collectons : prénom, âge, email, photos de profil, sports pratiqués, localisation approximative (ville). Nous ne collectons jamais ta localisation GPS précise en temps réel.</p>
+      <h3>Utilisation des données</h3><p>Tes données sont utilisées uniquement pour faire fonctionner PlayTogether : afficher ton profil, te proposer des matches compatibles, t'envoyer des notifications.</p>
+      <h3>Partage des données</h3><p>Tes données ne sont jamais vendues à des tiers. Elles peuvent être partagées avec des prestataires techniques (hébergement, emails) dans le strict respect du RGPD.</p>
+      <h3>Tes droits (RGPD)</h3><p>Tu as le droit d'accéder, modifier ou supprimer toutes tes données à tout moment depuis les paramètres. Tu peux aussi contacter privacy@playtogether.fr.</p>
+      <h3>Conservation des données</h3><p>Tes données sont conservées tant que ton compte est actif. En cas de suppression du compte, toutes les données sont effacées sous 30 jours.</p>
+      <h3>Sécurité</h3><p>Tes données sont chiffrées et stockées sur des serveurs sécurisés en Europe. Nous appliquons les meilleures pratiques de sécurité informatique.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ COOKIES VIEW ═══════════════ -->
+<div class="view" id="viewCookies">
+  <div class="topbar"><button class="back-btn" onclick="openView('viewMain')">←</button><div><div class="topbar-title">Cookies</div></div></div>
+  <div class="scroll-body">
+    <div style="padding:20px">
+      <p style="color:rgba(255,255,255,0.5);font-size:0.88rem;line-height:1.7;margin-bottom:24px">PlayTogether utilise des cookies pour améliorer ton expérience. Tu peux gérer tes préférences ci-dessous.</p>
+      <div class="settings-group">
+        <div class="setting-row"><div class="row-icon" style="background:rgba(74,222,128,0.1)">✅</div><div class="row-body"><div class="row-label">Cookies essentiels</div><div class="row-value">Nécessaires au fonctionnement · Non désactivables</div></div><div class="toggle on" style="pointer-events:none"></div></div>
+        <div class="setting-row"><div class="row-icon" style="background:rgba(96,165,250,0.1)">📊</div><div class="row-body"><div class="row-label">Cookies analytiques</div><div class="row-value">Nous aident à améliorer l'appli</div></div><div class="toggle on" onclick="toggleSwitch(this)"></div></div>
+        <div class="setting-row"><div class="row-icon" style="background:rgba(255,200,50,0.1)">🎯</div><div class="row-body"><div class="row-label">Cookies personnalisation</div><div class="row-value">Mémoriser tes préférences</div></div><div class="toggle on" onclick="toggleSwitch(this)"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ PREMIUM VIEW ═══════════════ -->
+<div class="view" id="viewPremium">
+  <div class="topbar"><button class="back-btn" onclick="openView('viewMain')">←</button><div><div class="topbar-title">PlayTogether+</div></div></div>
+  <div class="scroll-body">
+    <div style="padding:24px;text-align:center">
+      <div style="font-size:3.5rem;margin-bottom:12px">⭐</div>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;color:#ffd700;margin-bottom:8px">PlayTogether+</div>
+      <div style="color:rgba(255,255,255,0.45);font-size:0.88rem;margin-bottom:32px;line-height:1.6">Profite de toutes les fonctionnalités sans limite.</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:32px;text-align:left">
+        ${['⚡ Boost de profil 1x/semaine','🔄 Likes illimités par jour','📍 Changer de ville librement','🔍 Filtres avancés (niveau exact, dispo)','🌟 Badge profil vérifié','📊 Statistiques détaillées de visibilité','🎯 Priorité dans les résultats de recherche'].map(f=>`<div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);padding:14px 16px;border-radius:14px;font-size:0.88rem">${f}</div>`).join('')}
+      </div>
+      <div style="background:rgba(255,200,50,0.08);border:1px solid rgba(255,200,50,0.2);border-radius:20px;padding:20px;margin-bottom:16px">
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:#ffd700">5€<span style="font-size:1rem;color:rgba(255,255,255,0.4)">/mois</span></div>
+        <div style="font-size:0.78rem;color:rgba(255,255,255,0.3);margin-top:4px">Sans engagement · Annulable à tout moment</div>
+      </div>
+      <button class="modal-btn primary" style="max-width:100%">Commencer l'essai gratuit 7 jours</button>
+      <div style="font-size:0.72rem;color:rgba(255,255,255,0.25);margin-top:12px">Puis 5€/mois. Annulable depuis les paramètres.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODALS ═══════════════ -->
+
+<!-- Genre -->
+<div class="modal-overlay" id="modalGenre" onclick="closeModalOutside(event,'modalGenre')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Je recherche</div>
+    <div id="genreOptions">
+      <div class="sport-option selected" onclick="selectGenreOpt(this,'Tout le monde')"><span>👥</span> Tout le monde <span class="sport-check">✓</span></div>
+      <div class="sport-option" onclick="selectGenreOpt(this,'Des femmes')"><span>👩</span> Des femmes <span class="sport-check"></span></div>
+      <div class="sport-option" onclick="selectGenreOpt(this,'Des hommes')"><span>👨</span> Des hommes <span class="sport-check"></span></div>
+    </div>
+    <button class="modal-btn secondary" onclick="closeModal('modalGenre')" style="margin-top:16px">Fermer</button>
+  </div>
+</div>
+
+<!-- Niveau -->
+<div class="modal-overlay" id="modalNiveau" onclick="closeModalOutside(event,'modalNiveau')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Mon niveau</div>
+    <div>
+      <div class="sport-option" onclick="selectNiveauOpt(this,'Débutant')"><span>🌱</span> Débutant <span class="sport-check"></span></div>
+      <div class="sport-option selected" onclick="selectNiveauOpt(this,'Intermédiaire')"><span>⚡</span> Intermédiaire <span class="sport-check">✓</span></div>
+      <div class="sport-option" onclick="selectNiveauOpt(this,'Avancé')"><span>🔥</span> Avancé <span class="sport-check"></span></div>
+    </div>
+    <button class="modal-btn secondary" onclick="closeModal('modalNiveau')" style="margin-top:16px">Fermer</button>
+  </div>
+</div>
+
+<!-- Email -->
+<div class="modal-overlay" id="modalEmail" onclick="closeModalOutside(event,'modalEmail')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Modifier l'email</div>
+    <div class="modal-sub">Entre ton nouvel email. Un lien de confirmation te sera envoyé.</div>
+    <input class="modal-input" type="email" placeholder="nouveau@email.fr"/>
+    <button class="modal-btn primary" onclick="showToast('Email mis à jour ✓'); closeModal('modalEmail')">Confirmer</button>
+    <button class="modal-btn secondary" onclick="closeModal('modalEmail')">Annuler</button>
+  </div>
+</div>
+
+<!-- Password -->
+<div class="modal-overlay" id="modalPassword" onclick="closeModalOutside(event,'modalPassword')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Changer le mot de passe</div>
+    <input class="modal-input" type="password" placeholder="Mot de passe actuel"/>
+    <input class="modal-input" type="password" placeholder="Nouveau mot de passe"/>
+    <input class="modal-input" type="password" placeholder="Confirmer le nouveau"/>
+    <button class="modal-btn primary" onclick="showToast('Mot de passe modifié ✓'); closeModal('modalPassword')">Enregistrer</button>
+    <button class="modal-btn secondary" onclick="closeModal('modalPassword')">Annuler</button>
+  </div>
+</div>
+
+<!-- Déconnexion -->
+<div class="modal-overlay" id="modalDeconnect" onclick="closeModalOutside(event,'modalDeconnect')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Se déconnecter</div>
+    <div class="modal-sub">Tu pourras te reconnecter à tout moment avec ton email et mot de passe.</div>
+    <button class="modal-btn danger-btn" onclick="showToast('Déconnecté 👋'); closeModal('modalDeconnect')">Se déconnecter</button>
+    <button class="modal-btn secondary" onclick="closeModal('modalDeconnect')">Annuler</button>
+  </div>
+</div>
+
+<!-- Suppression -->
+<div class="modal-overlay" id="modalDelete" onclick="closeModalOutside(event,'modalDelete')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" style="color:var(--accent2)">⚠️ Supprimer mon compte</div>
+    <div class="modal-sub">Cette action est irréversible. Toutes tes données, photos, matches et messages seront définitivement supprimés sous 30 jours.</div>
+    <input class="modal-input" type="text" placeholder="Tape SUPPRIMER pour confirmer"/>
+    <button class="modal-btn danger-btn" onclick="showToast('Compte supprimé'); closeModal('modalDelete')">Supprimer définitivement</button>
+    <button class="modal-btn secondary" onclick="closeModal('modalDelete')">Annuler</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" style="position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(255,255,255,0.1);backdrop-filter:blur(10px);color:#fff;padding:12px 24px;border-radius:100px;font-size:0.88rem;opacity:0;transition:all 0.3s;pointer-events:none;z-index:999;white-space:nowrap;border:1px solid rgba(255,255,255,0.15)"></div>
+
+<script>
+function openView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function closeModalOutside(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+function toggleSwitch(el) { el.classList.toggle('on'); }
+
+function updateSlider(valId, val, unit) {
+  document.getElementById(valId).textContent = val + ' ' + unit;
+}
+function updateAgeSlider(val) {
+  document.getElementById('ageVal').textContent = '18 – ' + val + ' ans';
+}
+
+function selectGenreOpt(el, val) {
+  document.querySelectorAll('#genreOptions .sport-option').forEach(o => { o.classList.remove('selected'); o.querySelector('.sport-check').textContent = ''; });
+  el.classList.add('selected'); el.querySelector('.sport-check').textContent = '✓';
+  document.getElementById('genreVal').textContent = val;
+  setTimeout(() => closeModal('modalGenre'), 300);
+}
+function selectNiveauOpt(el, val) {
+  document.querySelectorAll('#modalNiveau .sport-option').forEach(o => { o.classList.remove('selected'); o.querySelector('.sport-check').textContent = ''; });
+  el.classList.add('selected'); el.querySelector('.sport-check').textContent = '✓';
+  document.getElementById('niveauVal').textContent = val;
+  setTimeout(() => closeModal('modalNiveau'), 300);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.opacity = '1'; t.style.transform = 'translateX(-50%) translateY(0)';
+  setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(-50%) translateY(20px)'; }, 2500);
+}
+</script>
+</body>
+</html>

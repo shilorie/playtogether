@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#1a1a18"/>
+  <title>PlayTogether – Créer mon profil</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f5f3ee; --dark: #1a1a18; --accent: #e8ff47; --accent2: #ff5c3a;
+      --gray: #7a7a70; --border: rgba(255,255,255,0.1); --card: rgba(255,255,255,0.05);
+      --safe-bottom: env(safe-area-inset-bottom, 0px); --safe-top: env(safe-area-inset-top, 0px);
+    }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--dark); color: #fff; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: calc(14px + var(--safe-top)) 20px 14px;
+      background: rgba(26,26,24,0.97); backdrop-filter: blur(14px);
+    }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.2rem; color: #fff; }
+    .logo span { color: var(--accent2); }
+    .back-btn {
+      background: rgba(255,255,255,0.08); border: none; color: #fff;
+      padding: 8px 16px; border-radius: 100px; font-size: 0.85rem; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .progress-wrap {
+      position: fixed; top: calc(56px + var(--safe-top)); left: 0; right: 0; z-index: 99;
+      background: rgba(26,26,24,0.97); padding: 12px 20px 14px;
+    }
+    .progress-steps { display: flex; gap: 6px; margin-bottom: 8px; }
+    .progress-step { height: 4px; flex: 1; border-radius: 100px; background: rgba(255,255,255,0.1); transition: background 0.4s; }
+    .progress-step.done { background: var(--accent2); }
+    .progress-step.active { background: var(--accent); }
+    .progress-label { font-size: 0.72rem; color: rgba(255,255,255,0.4); letter-spacing: 0.08em; text-transform: uppercase; }
+    .progress-label span { color: var(--accent); font-weight: 600; }
+
+    .form-wrapper { padding: calc(130px + var(--safe-top)) 0 calc(100px + var(--safe-bottom)); min-height: 100vh; }
+
+    .step-screen { display: none; flex-direction: column; padding: 0 20px; animation: slideIn 0.35s ease forwards; }
+    .step-screen.active { display: flex; }
+    @keyframes slideIn { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:translateX(0); } }
+
+    .step-emoji { font-size: 2.8rem; margin-bottom: 16px; }
+    .step-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(1.7rem,6vw,2.5rem); color: #fff; line-height: 1.1; margin-bottom: 8px; }
+    .step-title em { font-style: normal; color: var(--accent); }
+    .step-sub { color: rgba(255,255,255,0.45); font-size: 0.9rem; margin-bottom: 28px; line-height: 1.5; }
+
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 0.78rem; font-weight: 500; color: rgba(255,255,255,0.5); margin-bottom: 8px; letter-spacing: 0.06em; text-transform: uppercase; }
+    .field input, .field select {
+      width: 100%; padding: 16px 18px; background: rgba(255,255,255,0.06);
+      border: 1.5px solid var(--border); border-radius: 16px; color: #fff;
+      font-family: 'DM Sans', sans-serif; font-size: 1rem; outline: none;
+      transition: border-color 0.2s; -webkit-appearance: none;
+    }
+    .field input::placeholder { color: rgba(255,255,255,0.25); }
+    .field input:focus, .field select:focus { border-color: var(--accent); background: rgba(232,255,71,0.04); }
+    .field select option { background: #2a2a28; color: #fff; }
+
+    /* GENRE */
+    .gender-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 24px; }
+    .gender-card {
+      padding: 20px 12px; border-radius: 18px; text-align: center;
+      background: var(--card); border: 1.5px solid var(--border);
+      cursor: pointer; transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+    }
+    .gender-card:active { transform: scale(0.95); }
+    .gender-card.selected { background: rgba(232,255,71,0.08); border-color: var(--accent); }
+    .gender-icon { font-size: 2rem; margin-bottom: 8px; }
+    .gender-label { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; color: rgba(255,255,255,0.7); }
+    .gender-card.selected .gender-label { color: var(--accent); }
+
+    /* PHOTOS */
+    .photos-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 24px; }
+    .photo-slot {
+      aspect-ratio: 3/4; border-radius: 16px; overflow: hidden;
+      background: rgba(255,255,255,0.05); border: 1.5px dashed rgba(255,255,255,0.15);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; position: relative; transition: all 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .photo-slot:first-child { grid-column: span 2; grid-row: span 2; aspect-ratio: auto; min-height: 220px; }
+    .photo-slot:active { transform: scale(0.97); }
+    .photo-slot.filled { border-style: solid; border-color: rgba(255,255,255,0.1); }
+    .photo-slot .add-icon { font-size: 1.6rem; margin-bottom: 6px; color: rgba(255,255,255,0.3); }
+    .photo-slot .add-label { font-size: 0.7rem; color: rgba(255,255,255,0.25); }
+    .photo-slot.filled .add-icon, .photo-slot.filled .add-label { display: none; }
+    .photo-slot img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+    .photo-main-badge {
+      position: absolute; bottom: 8px; left: 8px;
+      background: var(--accent); color: var(--dark);
+      font-size: 0.65rem; font-weight: 700; padding: 3px 8px; border-radius: 100px;
+    }
+    .photo-delete {
+      position: absolute; top: 6px; right: 6px;
+      background: rgba(0,0,0,0.6); border: none; color: #fff;
+      width: 24px; height: 24px; border-radius: 50%; font-size: 0.7rem;
+      cursor: pointer; display: none; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .photo-slot.filled .photo-delete { display: flex; }
+    .photo-tip { font-size: 0.78rem; color: rgba(255,255,255,0.3); margin-bottom: 20px; text-align: center; line-height: 1.5; }
+    input[type="file"] { display: none; }
+
+    /* SPORTS */
+    .sports-search {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,0.06); border: 1.5px solid var(--border);
+      border-radius: 14px; padding: 10px 14px; margin-bottom: 16px;
+    }
+    .sports-search input { background: none; border: none; color: #fff; outline: none; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; flex: 1; }
+    .sports-search input::placeholder { color: rgba(255,255,255,0.3); }
+    .sports-category { margin-bottom: 20px; }
+    .sports-cat-title { font-size: 0.72rem; font-weight: 600; color: rgba(255,255,255,0.3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+    .sports-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip {
+      display: flex; align-items: center; gap: 6px; padding: 10px 14px; border-radius: 100px;
+      background: var(--card); border: 1.5px solid var(--border);
+      color: rgba(255,255,255,0.6); font-size: 0.85rem; cursor: pointer;
+      transition: all 0.2s; -webkit-tap-highlight-color: transparent; user-select: none;
+    }
+    .chip:active { transform: scale(0.95); }
+    .chip.selected { background: rgba(232,255,71,0.1); border-color: var(--accent); color: var(--accent); }
+    .chip-icon { font-size: 1rem; }
+    .selected-count { font-size: 0.78rem; color: rgba(255,255,255,0.3); margin-bottom: 16px; }
+    .selected-count span { color: var(--accent); font-weight: 600; }
+
+    /* NIVEAU */
+    .level-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+    .level-card {
+      padding: 18px 20px; border-radius: 18px; background: var(--card);
+      border: 1.5px solid var(--border); cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; gap: 16px; -webkit-tap-highlight-color: transparent;
+    }
+    .level-card:active { transform: scale(0.98); }
+    .level-card.selected { background: rgba(232,255,71,0.08); border-color: var(--accent); }
+    .level-icon { font-size: 1.6rem; flex-shrink: 0; }
+    .level-name { font-family: 'Syne', sans-serif; font-weight: 700; color: #fff; font-size: 1rem; }
+    .level-desc { font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .level-check { margin-left: auto; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+    .level-card.selected .level-check { background: var(--accent); border-color: var(--accent); color: var(--dark); font-size: 0.75rem; font-weight: 700; }
+
+    /* DISPO */
+    .dispo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .dispo-chip {
+      padding: 14px 12px; border-radius: 16px; text-align: center;
+      background: var(--card); border: 1.5px solid var(--border);
+      color: rgba(255,255,255,0.5); font-size: 0.85rem; cursor: pointer;
+      transition: all 0.2s; -webkit-tap-highlight-color: transparent;
+    }
+    .dispo-chip .dispo-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+    .dispo-chip:active { transform: scale(0.97); }
+    .dispo-chip.selected { background: rgba(255,92,58,0.1); border-color: var(--accent2); color: var(--accent2); }
+
+    /* CGU */
+    .cgu-box {
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 16px; padding: 16px; margin-bottom: 16px;
+    }
+    .cgu-check-row {
+      display: flex; align-items: flex-start; gap: 12px; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .cgu-checkbox {
+      width: 22px; height: 22px; border-radius: 6px; flex-shrink: 0;
+      border: 1.5px solid rgba(255,255,255,0.2); margin-top: 1px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.04); transition: all 0.2s;
+    }
+    .cgu-checkbox.checked { background: var(--accent); border-color: var(--accent); color: var(--dark); font-size: 0.8rem; font-weight: 700; }
+    .cgu-text { font-size: 0.82rem; color: rgba(255,255,255,0.5); line-height: 1.5; }
+    .cgu-text a { color: var(--accent2); text-decoration: none; }
+
+    /* SUCCESS */
+    .success-screen { display: none; flex-direction: column; align-items: center; text-align: center; padding: 40px 20px; animation: popIn 0.5s ease forwards; }
+    .success-screen.active { display: flex; }
+    @keyframes popIn { from { opacity:0; transform:scale(0.9); } to { opacity:1; transform:scale(1); } }
+    .success-circle { width: 100px; height: 100px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 3rem; margin-bottom: 28px; animation: bounce 0.6s 0.3s ease both; }
+    @keyframes bounce { 0%{transform:scale(0)} 60%{transform:scale(1.15)} 100%{transform:scale(1)} }
+    .success-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2rem; color: #fff; margin-bottom: 12px; }
+    .success-title em { font-style: normal; color: var(--accent); }
+    .success-sub { color: rgba(255,255,255,0.45); font-size: 0.95rem; line-height: 1.6; margin-bottom: 36px; }
+    .preview-card { background: var(--card); border: 1px solid var(--border); border-radius: 24px; padding: 24px; width: 100%; max-width: 320px; margin: 0 auto 36px; text-align: left; }
+    .preview-top { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+    .preview-avatar { font-size: 2.5rem; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+    .preview-name { font-family: 'Syne', sans-serif; font-weight: 800; color: #fff; font-size: 1.1rem; }
+    .preview-city { color: rgba(255,255,255,0.4); font-size: 0.82rem; margin-top: 2px; }
+    .preview-sports { display: flex; flex-wrap: wrap; gap: 8px; }
+    .preview-sport-tag { background: rgba(232,255,71,0.1); color: var(--accent); padding: 5px 12px; border-radius: 100px; font-size: 0.78rem; font-weight: 500; }
+
+    .step-cta { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; padding: 16px 20px calc(16px + var(--safe-bottom)); background: linear-gradient(to top, rgba(26,26,24,1) 60%, transparent); }
+    .btn-next { width: 100%; padding: 18px; background: var(--accent); color: var(--dark); border: none; border-radius: 18px; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.05rem; cursor: pointer; transition: transform 0.15s, opacity 0.15s; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+    .btn-next:active { transform: scale(0.98); }
+    .btn-next:disabled { opacity: 0.3; pointer-events: none; }
+
+    @media (min-width: 600px) {
+      .form-wrapper { max-width: 480px; margin: 0 auto; }
+      .step-cta { max-width: 480px; left: 50%; transform: translateX(-50%); }
+      .progress-wrap { max-width: 480px; left: 50%; transform: translateX(-50%); right: auto; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Play<span>Together</span></div>
+  <button class="back-btn" onclick="prevStep()">← Retour</button>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-steps">
+    <div class="progress-step active" id="ps1"></div>
+    <div class="progress-step" id="ps2"></div>
+    <div class="progress-step" id="ps3"></div>
+    <div class="progress-step" id="ps4"></div>
+    <div class="progress-step" id="ps5"></div>
+    <div class="progress-step" id="ps6"></div>
+  </div>
+  <div class="progress-label">Étape <span id="stepNum">1</span> sur 6</div>
+</div>
+
+<div class="form-wrapper">
+
+  <!-- STEP 1 : Infos + Genre -->
+  <div class="step-screen active" id="step1">
+    <div class="step-emoji">👋</div>
+    <h2 class="step-title">Salut ! On commence<br>par les <em>bases</em></h2>
+    <p class="step-sub">Quelques infos pour créer ton profil sportif.</p>
+    <div class="field"><label>Prénom</label><input type="text" id="prenom" placeholder="Ex : Lucas" autocomplete="given-name"/></div>
+    <div class="field"><label>Âge</label><input type="number" id="age" placeholder="Ex : 26" min="18" max="99" inputmode="numeric"/></div>
+    <div class="field"><label>Email</label><input type="email" id="email" placeholder="ton@email.fr" autocomplete="email"/></div>
+    <div class="field"><label>Mot de passe</label><input type="password" id="password" placeholder="Min. 8 caractères"/></div>
+    <div class="field" style="margin-top:8px">
+      <label>Tu es…</label>
+      <div class="gender-grid">
+        <div class="gender-card" data-gender="Homme" onclick="selectGender(this)">
+          <div class="gender-icon">👨</div>
+          <div class="gender-label">Homme</div>
+        </div>
+        <div class="gender-card" data-gender="Femme" onclick="selectGender(this)">
+          <div class="gender-icon">👩</div>
+          <div class="gender-label">Femme</div>
+        </div>
+        <div class="gender-card" data-gender="Autre" onclick="selectGender(this)">
+          <div class="gender-icon">🧑</div>
+          <div class="gender-label">Autre</div>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Je recherche</label>
+      <select id="recherche">
+        <option value="">Sélectionne une option</option>
+        <option value="Hommes">Des hommes</option>
+        <option value="Femmes">Des femmes</option>
+        <option value="Tout le monde">Tout le monde</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- STEP 2 : Photos -->
+  <div class="step-screen" id="step2">
+    <div class="step-emoji">📸</div>
+    <h2 class="step-title">Ajoute tes <em>photos</em></h2>
+    <p class="step-sub">Jusqu'à 5 photos. La première sera ta photo principale.</p>
+    <div class="photos-grid" id="photosGrid">
+      <div class="photo-slot" id="slot0" onclick="triggerUpload(0)">
+        <div class="add-icon">📷</div>
+        <div class="add-label">Photo principale</div>
+        <div class="photo-main-badge">Principal</div>
+      </div>
+      <div class="photo-slot" id="slot1" onclick="triggerUpload(1)"><div class="add-icon">+</div><div class="add-label">Ajouter</div></div>
+      <div class="photo-slot" id="slot2" onclick="triggerUpload(2)"><div class="add-icon">+</div><div class="add-label">Ajouter</div></div>
+      <div class="photo-slot" id="slot3" onclick="triggerUpload(3)"><div class="add-icon">+</div><div class="add-label">Ajouter</div></div>
+      <div class="photo-slot" id="slot4" onclick="triggerUpload(4)"><div class="add-icon">+</div><div class="add-label">Ajouter</div></div>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" onchange="handleFile(event)"/>
+    <p class="photo-tip">💡 Les profils avec une vraie photo reçoivent <strong style="color:var(--accent)">3x plus</strong> de matches !</p>
+    <div class="field"><label>Ta bio (optionnel)</label>
+      <input type="text" id="bio" placeholder="Ex : Passionné de running, toujours partant pour une session 🏃"/>
+    </div>
+  </div>
+
+  <!-- STEP 3 : Sports -->
+  <div class="step-screen" id="step3">
+    <div class="step-emoji">🏅</div>
+    <h2 class="step-title">Quels sports<br>tu <em>pratiques</em> ?</h2>
+    <p class="step-sub">Sélectionne tous tes sports. Plus tu en mets, plus tu matcheras !</p>
+    <div class="sports-search">
+      <span style="color:rgba(255,255,255,0.3)">🔍</span>
+      <input type="text" placeholder="Rechercher un sport…" oninput="filterSports(this.value)"/>
+    </div>
+    <div class="selected-count">Sports sélectionnés : <span id="sportCount">0</span></div>
+    <div id="sportsContainer"></div>
+  </div>
+
+  <!-- STEP 4 : Niveau -->
+  <div class="step-screen" id="step4">
+    <div class="step-emoji">📊</div>
+    <h2 class="step-title">Quel est ton <em>niveau</em> ?</h2>
+    <p class="step-sub">Pour matcher avec des personnes vraiment compatibles.</p>
+    <div class="level-cards">
+      <div class="level-card" data-level="Débutant" onclick="selectLevel(this)">
+        <div class="level-icon">🌱</div>
+        <div><div class="level-name">Débutant</div><div class="level-desc">Je commence ou je pratique occasionnellement</div></div>
+        <div class="level-check">✓</div>
+      </div>
+      <div class="level-card" data-level="Intermédiaire" onclick="selectLevel(this)">
+        <div class="level-icon">⚡</div>
+        <div><div class="level-name">Intermédiaire</div><div class="level-desc">Je pratique régulièrement depuis quelques années</div></div>
+        <div class="level-check">✓</div>
+      </div>
+      <div class="level-card" data-level="Avancé" onclick="selectLevel(this)">
+        <div class="level-icon">🔥</div>
+        <div><div class="level-name">Avancé</div><div class="level-desc">Je suis très régulier, compétiteur ou coach</div></div>
+        <div class="level-check">✓</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5 : Dispo + Ville + Distance -->
+  <div class="step-screen" id="step5">
+    <div class="step-emoji">📅</div>
+    <h2 class="step-title">Dispo & <em>localisation</em></h2>
+    <p class="step-sub">On trouvera des partenaires près de chez toi, quand tu es disponible.</p>
+    <div class="field"><label>Ta ville</label>
+      <select id="ville">
+        <option value="">Sélectionne ta ville</option>
+        <option>Bordeaux</option><option>Lyon</option><option>Toulouse</option>
+        <option>Nantes</option><option>Marseille</option><option>Paris</option>
+        <option>Lille</option><option>Strasbourg</option><option>Rennes</option><option>Autre</option>
+      </select>
+    </div>
+    <div class="field"><label>Rayon de recherche</label>
+      <select id="rayon">
+        <option value="5">5 km – Mon quartier</option>
+        <option value="10" selected>10 km – Ma ville</option>
+        <option value="25">25 km – Alentours</option>
+        <option value="50">50 km – Grande région</option>
+        <option value="100">100 km – Peu importe</option>
+      </select>
+    </div>
+    <div class="field" style="margin-top:4px"><label>Disponibilités</label></div>
+    <div class="dispo-grid" id="dispoGrid">
+      <div class="dispo-chip" onclick="toggleDispo(this)" data-dispo="Matin semaine"><span class="dispo-icon">🌅</span>Matin<br><small>En semaine</small></div>
+      <div class="dispo-chip" onclick="toggleDispo(this)" data-dispo="Midi semaine"><span class="dispo-icon">☀️</span>Midi<br><small>En semaine</small></div>
+      <div class="dispo-chip" onclick="toggleDispo(this)" data-dispo="Soir semaine"><span class="dispo-icon">🌆</span>Soir<br><small>En semaine</small></div>
+      <div class="dispo-chip" onclick="toggleDispo(this)" data-dispo="Week-end"><span class="dispo-icon">🎉</span>Week-end<br><small>Sam & Dim</small></div>
+    </div>
+  </div>
+
+  <!-- STEP 6 : CGU -->
+  <div class="step-screen" id="step6">
+    <div class="step-emoji">📋</div>
+    <h2 class="step-title">Presque <em>terminé</em> !</h2>
+    <p class="step-sub">Lis et accepte nos conditions avant de rejoindre PlayTogether.</p>
+
+    <div class="cgu-box" style="max-height:200px;overflow-y:auto;margin-bottom:16px">
+      <div style="font-family:'Syne',sans-serif;font-weight:700;margin-bottom:10px;font-size:0.9rem">Conditions Générales d'Utilisation</div>
+      <div style="font-size:0.78rem;color:rgba(255,255,255,0.45);line-height:1.7">
+        <p style="margin-bottom:8px"><strong style="color:rgba(255,255,255,0.7)">1. Objet</strong><br>PlayTogether est une application de mise en relation de sportifs. L'utilisation du service implique l'acceptation des présentes conditions.</p>
+        <p style="margin-bottom:8px"><strong style="color:rgba(255,255,255,0.7)">2. Âge minimum</strong><br>L'utilisation de PlayTogether est réservée aux personnes âgées de 18 ans et plus.</p>
+        <p style="margin-bottom:8px"><strong style="color:rgba(255,255,255,0.7)">3. Comportement</strong><br>Les utilisateurs s'engagent à respecter les autres membres, à ne pas publier de contenu offensant ou inapproprié, et à utiliser l'application de bonne foi.</p>
+        <p style="margin-bottom:8px"><strong style="color:rgba(255,255,255,0.7)">4. Données personnelles</strong><br>Tes données sont utilisées uniquement pour le fonctionnement de PlayTogether. Elles ne sont jamais vendues à des tiers. Tu peux demander la suppression de ton compte à tout moment.</p>
+        <p style="margin-bottom:8px"><strong style="color:rgba(255,255,255,0.7)">5. Photos</strong><br>Tu certifies que les photos uploadées te représentent réellement et que tu es majeur(e). Toute usurpation d'identité entraîne la suppression du compte.</p>
+        <p style="margin-bottom:8px"><strong style="color:rgba(255,255,255,0.7)">6. Responsabilité</strong><br>PlayTogether met en relation des sportifs mais n'est pas responsable des rencontres physiques. Nous recommandons de toujours se retrouver dans des lieux publics pour les premières sessions.</p>
+        <p><strong style="color:rgba(255,255,255,0.7)">7. Signalement</strong><br>Tout comportement inapproprié peut être signalé via le bouton de signalement disponible sur chaque profil.</p>
+      </div>
+    </div>
+
+    <div class="cgu-box" style="margin-bottom:12px" onclick="toggleCgu('cgu1')">
+      <div class="cgu-check-row">
+        <div class="cgu-checkbox" id="cgu1">✓</div>
+        <div class="cgu-text">J'accepte les <a href="#">Conditions Générales d'Utilisation</a> de PlayTogether et je certifie avoir <strong>18 ans ou plus</strong>.</div>
+      </div>
+    </div>
+    <div class="cgu-box" onclick="toggleCgu('cgu2')">
+      <div class="cgu-check-row">
+        <div class="cgu-checkbox" id="cgu2">✓</div>
+        <div class="cgu-text">J'accepte la <a href="#">Politique de Confidentialité</a> et le traitement de mes données personnelles conformément au RGPD.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-screen" id="stepSuccess">
+    <div class="success-circle">🎉</div>
+    <h2 class="success-title">Bienvenue sur<br><em>PlayTogether</em> !</h2>
+    <p class="success-sub">Ton profil est créé. On te préviendra dès que la bêta ouvre !</p>
+    <div class="preview-card">
+      <div class="preview-top">
+        <div class="preview-avatar" id="previewAvatar" style="background:rgba(255,255,255,0.08)">🧑</div>
+        <div>
+          <div class="preview-name" id="previewName">–</div>
+          <div class="preview-city" id="previewCity">–</div>
+        </div>
+      </div>
+      <div class="preview-sports" id="previewSports"></div>
+    </div>
+    <button class="btn-next" onclick="window.location.href='playtogether.html'">Retour à l'accueil 🏠</button>
+  </div>
+</div>
+
+<div class="step-cta" id="stepCta">
+  <button class="btn-next" id="btnNext" onclick="nextStep()">Continuer →</button>
+</div>
+
+<script>
+const totalSteps = 6;
+let currentStep = 1;
+const data = { prenom:'', age:'', email:'', password:'', gender:'', recherche:'', photos:new Array(5).fill(null), bio:'', sports:[], level:'', dispos:[], ville:'', rayon:'10' };
+let currentSlot = 0;
+
+const allSports = [
+  { cat:'🏃 Cardio', sports:[{icon:'🏃',name:'Running'},{icon:'🚴',name:'Cyclisme'},{icon:'🏊',name:'Natation'},{icon:'🚶',name:'Marche rapide'},{icon:'⛷️',name:'Ski'},{icon:'🛹',name:'Skateboard'},{icon:'🛼',name:'Roller'}]},
+  { cat:'🎾 Raquettes', sports:[{icon:'🎾',name:'Tennis'},{icon:'🏸',name:'Badminton'},{icon:'🏓',name:'Tennis de table'},{icon:'🎾',name:'Padel'},{icon:'🏒',name:'Squash'}]},
+  { cat:'⚽ Sports collectifs', sports:[{icon:'⚽',name:'Football'},{icon:'🏀',name:'Basketball'},{icon:'🏐',name:'Volleyball'},{icon:'🤾',name:'Handball'},{icon:'🏑',name:'Hockey'},{icon:'🏉',name:'Rugby'},{icon:'⚾',name:'Baseball'}]},
+  { cat:'💪 Fitness', sports:[{icon:'💪',name:'Musculation'},{icon:'🧘',name:'Yoga'},{icon:'🥊',name:'Boxe'},{icon:'🥋',name:'Arts martiaux'},{icon:'🤸',name:'Crossfit'},{icon:'🧗',name:'Escalade'},{icon:'🏋️',name:'Haltérophilie'}]},
+  { cat:'🌿 Nature', sports:[{icon:'🥾',name:'Randonnée'},{icon:'🧗',name:'Alpinisme'},{icon:'🏄',name:'Surf'},{icon:'🤿',name:'Plongée'},{icon:'🛶',name:'Kayak'},{icon:'🎣',name:'Pêche sportive'},{icon:'🏇',name:'Équitation'}]},
+  { cat:'🎯 Autres', sports:[{icon:'🎱',name:'Billard'},{icon:'⛳',name:'Golf'},{icon:'🎿',name:'Snowboard'},{icon:'🪂',name:'Parachutisme'},{icon:'🏹',name:'Tir à l\'arc'},{icon:'🤼',name:'Lutte'},{icon:'🚣',name:'Aviron'}]},
+];
+
+function renderSports(filter = '') {
+  const container = document.getElementById('sportsContainer');
+  container.innerHTML = '';
+  allSports.forEach(cat => {
+    const filtered = cat.sports.filter(s => s.name.toLowerCase().includes(filter.toLowerCase()));
+    if (!filtered.length) return;
+    const catDiv = document.createElement('div');
+    catDiv.className = 'sports-category';
+    catDiv.innerHTML = `<div class="sports-cat-title">${cat.cat}</div><div class="sports-chips" id="cat_${cat.cat}"></div>`;
+    container.appendChild(catDiv);
+    const chipsDiv = catDiv.querySelector('.sports-chips');
+    filtered.forEach(s => {
+      const chip = document.createElement('div');
+      chip.className = 'chip' + (data.sports.includes(s.name) ? ' selected' : '');
+      chip.dataset.sport = s.name;
+      chip.innerHTML = `<span class="chip-icon">${s.icon}</span>${s.name}`;
+      chip.onclick = () => toggleSport(chip);
+      chipsDiv.appendChild(chip);
+    });
+  });
+}
+
+function filterSports(val) { renderSports(val); }
+
+function toggleSport(el) {
+  el.classList.toggle('selected');
+  const sport = el.dataset.sport;
+  if (el.classList.contains('selected')) { if (!data.sports.includes(sport)) data.sports.push(sport); }
+  else { data.sports = data.sports.filter(s => s !== sport); }
+  document.getElementById('sportCount').textContent = data.sports.length;
+}
+
+function selectGender(el) {
+  document.querySelectorAll('.gender-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected'); data.gender = el.dataset.gender;
+}
+
+function selectLevel(el) {
+  document.querySelectorAll('.level-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected'); data.level = el.dataset.level;
+}
+
+function toggleDispo(el) {
+  el.classList.toggle('selected');
+  const d = el.dataset.dispo;
+  if (el.classList.contains('selected')) { if (!data.dispos.includes(d)) data.dispos.push(d); }
+  else { data.dispos = data.dispos.filter(x => x !== d); }
+}
+
+// CGU
+const cguState = { cgu1: false, cgu2: false };
+function toggleCgu(id) {
+  cguState[id] = !cguState[id];
+  const el = document.getElementById(id);
+  el.classList.toggle('checked', cguState[id]);
+}
+
+// Photos
+function triggerUpload(slot) {
+  currentSlot = slot;
+  if (data.photos[slot]) return;
+  document.getElementById('fileInput').click();
+}
+
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    data.photos[currentSlot] = ev.target.result;
+    const slot = document.getElementById('slot' + currentSlot);
+    slot.classList.add('filled');
+    let img = slot.querySelector('img');
+    if (!img) { img = document.createElement('img'); slot.appendChild(img); }
+    img.src = ev.target.result;
+    const delBtn = slot.querySelector('.photo-delete') || (() => {
+      const b = document.createElement('button');
+      b.className = 'photo-delete'; b.textContent = '✕';
+      b.onclick = e => { e.stopPropagation(); removePhoto(currentSlot); };
+      slot.appendChild(b); return b;
+    })();
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+}
+
+function removePhoto(slot) {
+  data.photos[slot] = null;
+  const el = document.getElementById('slot' + slot);
+  el.classList.remove('filled');
+  const img = el.querySelector('img'); if (img) img.remove();
+  const btn = el.querySelector('.photo-delete'); if (btn) btn.remove();
+}
+
+// Navigation
+function updateProgress() {
+  for (let i = 1; i <= totalSteps; i++) {
+    const el = document.getElementById('ps' + i);
+    el.className = 'progress-step' + (i < currentStep ? ' done' : i === currentStep ? ' active' : '');
+  }
+  document.getElementById('stepNum').textContent = currentStep;
+}
+
+function validateStep() {
+  if (currentStep === 1) {
+    if (!document.getElementById('prenom').value.trim()) return shake('step1');
+    if (!document.getElementById('age').value || +document.getElementById('age').value < 18) return shake('step1');
+    const em = document.getElementById('email').value.trim();
+    if (!em || !em.includes('@')) return shake('step1');
+    if (!document.getElementById('password').value || document.getElementById('password').value.length < 8) return shake('step1');
+    if (!data.gender) return shake('step1');
+    if (!document.getElementById('recherche').value) return shake('step1');
+    return true;
+  }
+  if (currentStep === 2) return true; // photos optionnelles
+  if (currentStep === 3) { if (!data.sports.length) return shake('step3'); return true; }
+  if (currentStep === 4) { if (!data.level) return shake('step4'); return true; }
+  if (currentStep === 5) {
+    if (!document.getElementById('ville').value) return shake('step5');
+    if (!data.dispos.length) return shake('step5');
+    return true;
+  }
+  if (currentStep === 6) {
+    if (!cguState.cgu1 || !cguState.cgu2) return shake('step6');
+    return true;
+  }
+  return true;
+}
+
+function shake(id) {
+  const el = document.getElementById(id);
+  el.style.transform = 'translateX(-8px)';
+  setTimeout(()=>el.style.transform='translateX(8px)',80);
+  setTimeout(()=>el.style.transform='translateX(0)',160);
+  return false;
+}
+
+function collectStep() {
+  if (currentStep === 1) {
+    data.prenom = document.getElementById('prenom').value.trim();
+    data.age = document.getElementById('age').value;
+    data.email = document.getElementById('email').value.trim();
+    data.recherche = document.getElementById('recherche').value;
+  }
+  if (currentStep === 2) { data.bio = document.getElementById('bio').value.trim(); }
+  if (currentStep === 5) {
+    data.ville = document.getElementById('ville').value;
+    data.rayon = document.getElementById('rayon').value;
+  }
+}
+
+function nextStep() {
+  if (!validateStep()) return;
+  collectStep();
+  if (currentStep === totalSteps) { showSuccess(); return; }
+  document.getElementById('step' + currentStep).classList.remove('active');
+  currentStep++;
+  if (currentStep === 3) renderSports();
+  document.getElementById('step' + currentStep).classList.add('active');
+  updateProgress();
+  window.scrollTo(0, 0);
+}
+
+function prevStep() {
+  if (currentStep <= 1) { window.history.back(); return; }
+  document.getElementById('step' + currentStep).classList.remove('active');
+  currentStep--;
+  document.getElementById('step' + currentStep).classList.add('active');
+  updateProgress();
+  window.scrollTo(0, 0);
+}
+
+function showSuccess() {
+  document.getElementById('step6').classList.remove('active');
+  document.getElementById('stepCta').style.display = 'none';
+  document.getElementById('stepSuccess').classList.add('active');
+  for (let i = 1; i <= totalSteps; i++) document.getElementById('ps' + i).className = 'progress-step done';
+  document.getElementById('stepNum').textContent = '✓';
+  document.getElementById('previewName').textContent = data.prenom + ', ' + data.age + ' · ' + data.gender;
+  document.getElementById('previewCity').textContent = '📍 ' + data.ville + ' · ' + data.level;
+  if (data.photos[0]) {
+    const av = document.getElementById('previewAvatar');
+    av.innerHTML = `<img src="${data.photos[0]}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`;
+  }
+  const sportsEl = document.getElementById('previewSports');
+  sportsEl.innerHTML = '';
+  data.sports.slice(0, 4).forEach(s => {
+    const tag = document.createElement('div');
+    tag.className = 'preview-sport-tag';
+    tag.textContent = s;
+    sportsEl.appendChild(tag);
+  });
+  if (data.sports.length > 4) {
+    const more = document.createElement('div');
+    more.className = 'preview-sport-tag';
+    more.textContent = '+' + (data.sports.length - 4);
+    sportsEl.appendChild(more);
+  }
+}
+</script>
+</body>
+</html>

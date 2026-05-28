@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="theme-color" content="#1a1a18"/>
+  <title>PlayTogether – Explorer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f5f3ee;
+      --dark: #1a1a18;
+      --accent: #e8ff47;
+      --accent2: #ff5c3a;
+      --green: #4ade80;
+      --gray: #7a7a70;
+      --border: #e0ddd5;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-top: env(safe-area-inset-top, 0px);
+    }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--dark);
+      color: #fff;
+      min-height: 100vh;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: calc(14px + var(--safe-top)) 20px 14px;
+      background: rgba(26,26,24,0.95);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.2rem; color: #fff; }
+    .logo span { color: var(--accent2); }
+    .topbar-icons { display: flex; gap: 12px; }
+    .topbar-btn {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: rgba(255,255,255,0.08); border: none;
+      color: #fff; font-size: 1.1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.2s;
+    }
+    .topbar-btn:active { background: rgba(255,255,255,0.16); }
+    .notif-dot {
+      position: relative;
+    }
+    .notif-dot::after {
+      content: ''; position: absolute; top: 6px; right: 6px;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent2); border: 2px solid var(--dark);
+    }
+
+    /* ── FILTER CHIPS ── */
+    .filters {
+      position: fixed; top: calc(64px + var(--safe-top)); left: 0; right: 0; z-index: 99;
+      padding: 10px 20px;
+      background: rgba(26,26,24,0.9);
+      display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+    }
+    .filters::-webkit-scrollbar { display: none; }
+    .filter-chip {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: 100px; white-space: nowrap;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.55); font-size: 0.8rem;
+      cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .filter-chip.active {
+      background: rgba(232,255,71,0.12);
+      border-color: var(--accent); color: var(--accent);
+    }
+    .filter-chip:active { transform: scale(0.96); }
+
+    /* ── CARD STACK ── */
+    .card-stack {
+      position: fixed;
+      top: calc(120px + var(--safe-top));
+      bottom: calc(90px + var(--safe-bottom));
+      left: 0; right: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    .profile-card {
+      position: absolute;
+      width: calc(100% - 32px); max-width: 380px;
+      height: 100%;
+      border-radius: 28px; overflow: hidden;
+      cursor: grab;
+      transition: transform 0.08s ease;
+      touch-action: none;
+      will-change: transform;
+    }
+    .profile-card:active { cursor: grabbing; }
+    .profile-card.back1 {
+      transform: scale(0.94) translateY(16px);
+      z-index: 1; pointer-events: none;
+    }
+    .profile-card.back2 {
+      transform: scale(0.88) translateY(32px);
+      z-index: 0; pointer-events: none;
+    }
+    .profile-card.front { z-index: 10; }
+
+    .profile-card.swipe-right {
+      animation: swipeRight 0.45s ease forwards;
+    }
+    .profile-card.swipe-left {
+      animation: swipeLeft 0.45s ease forwards;
+    }
+    @keyframes swipeRight {
+      to { transform: translateX(150%) rotate(20deg); opacity: 0; }
+    }
+    @keyframes swipeLeft {
+      to { transform: translateX(-150%) rotate(-20deg); opacity: 0; }
+    }
+
+    /* ── CARD CONTENT ── */
+    .card-bg {
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      justify-content: flex-end;
+      position: relative; overflow: hidden;
+    }
+    .card-gradient-bg {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9rem;
+    }
+    .card-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to bottom, transparent 30%, rgba(10,10,8,0.95) 100%);
+    }
+    .card-info {
+      position: relative; z-index: 2;
+      padding: 24px 24px 28px;
+    }
+    .card-top-badges {
+      position: absolute; top: 20px; left: 20px; right: 20px;
+      display: flex; justify-content: space-between; z-index: 3;
+    }
+    .badge-level {
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 5px 12px; border-radius: 100px;
+      font-size: 0.72rem; font-weight: 600; color: #fff;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .badge-dist {
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 5px 12px; border-radius: 100px;
+      font-size: 0.72rem; color: rgba(255,255,255,0.7);
+    }
+
+    .card-name {
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: 1.9rem; color: #fff; line-height: 1;
+      margin-bottom: 6px;
+    }
+    .card-sport-main {
+      font-size: 0.95rem; color: rgba(255,255,255,0.65);
+      margin-bottom: 14px; display: flex; align-items: center; gap: 6px;
+    }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .card-tag {
+      padding: 5px 12px; border-radius: 100px; font-size: 0.75rem;
+      background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .card-tag.sport { background: rgba(232,255,71,0.12); color: var(--accent); }
+    .card-bio {
+      font-size: 0.85rem; color: rgba(255,255,255,0.5);
+      line-height: 1.5; margin-bottom: 4px;
+    }
+
+    /* ── LIKE / NOPE indicators ── */
+    .stamp {
+      position: absolute; top: 40px;
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: 1.8rem; padding: 10px 20px;
+      border-radius: 12px; border: 4px solid;
+      opacity: 0; z-index: 20;
+      pointer-events: none; transition: opacity 0.1s;
+    }
+    .stamp.like { left: 24px; color: var(--green); border-color: var(--green); transform: rotate(-15deg); }
+    .stamp.nope { right: 24px; color: var(--accent2); border-color: var(--accent2); transform: rotate(15deg); }
+
+    /* ── BUTTONS ── */
+    .action-buttons {
+      position: fixed; bottom: calc(14px + var(--safe-bottom));
+      left: 0; right: 0;
+      display: flex; justify-content: center; align-items: center;
+      gap: 16px; z-index: 100;
+    }
+    .action-btn {
+      border: none; border-radius: 50%; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; transition: transform 0.15s, box-shadow 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .action-btn:active { transform: scale(0.9) !important; }
+    .btn-skip {
+      width: 58px; height: 58px;
+      background: rgba(255,255,255,0.08);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.5);
+    }
+    .btn-nope {
+      width: 68px; height: 68px;
+      background: rgba(255,92,58,0.12);
+      border: 1.5px solid rgba(255,92,58,0.25);
+    }
+    .btn-like {
+      width: 72px; height: 72px;
+      background: var(--green);
+      box-shadow: 0 6px 30px rgba(74,222,128,0.35);
+    }
+    .btn-super {
+      width: 58px; height: 58px;
+      background: rgba(232,255,71,0.1);
+      border: 1.5px solid rgba(232,255,71,0.25);
+    }
+
+    /* ── MATCH POPUP ── */
+    .match-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 40px 24px; text-align: center;
+    }
+    .match-overlay.show { display: flex; animation: fadeInScale 0.4s ease; }
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.85); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .match-title {
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: 2.8rem; color: var(--accent);
+      margin-bottom: 8px; line-height: 1;
+    }
+    .match-sub { color: rgba(255,255,255,0.55); font-size: 1rem; margin-bottom: 36px; }
+    .match-avatars {
+      display: flex; align-items: center; gap: 16px; margin-bottom: 40px;
+    }
+    .match-avatar {
+      width: 90px; height: 90px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; border: 3px solid var(--accent);
+    }
+    .match-heart { font-size: 2rem; }
+    .btn-message {
+      background: var(--accent); color: var(--dark);
+      border: none; padding: 16px 36px; border-radius: 100px;
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: 1rem; cursor: pointer; margin-bottom: 16px;
+      width: 100%; max-width: 300px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-continue {
+      background: transparent; color: rgba(255,255,255,0.4);
+      border: none; padding: 12px; font-size: 0.9rem; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      position: fixed; inset: 0;
+      display: none; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 40px;
+      top: calc(120px + var(--safe-top));
+      bottom: calc(90px + var(--safe-bottom));
+    }
+    .empty-state.show { display: flex; }
+    .empty-emoji { font-size: 4rem; margin-bottom: 20px; }
+    .empty-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; color: #fff; margin-bottom: 10px; }
+    .empty-sub { color: rgba(255,255,255,0.4); font-size: 0.9rem; line-height: 1.6; }
+
+    /* ── BOTTOM NAV ── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 150;
+      background: rgba(26,26,24,0.95);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 8px 0 calc(8px + var(--safe-bottom));
+      display: flex; justify-content: space-around; align-items: center;
+    }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      font-size: 0.6rem; color: rgba(255,255,255,0.3); cursor: pointer;
+      padding: 4px 20px; border-radius: 12px;
+      -webkit-tap-highlight-color: transparent;
+      transition: color 0.2s;
+    }
+    .nav-item .nav-icon { font-size: 1.35rem; }
+    .nav-item.active { color: var(--accent2); }
+
+    @media (min-width: 600px) {
+      .profile-card { max-width: 400px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="logo">Play<span>Together</span></div>
+  <div class="topbar-icons">
+    <button class="topbar-btn">⚙️</button>
+    <button class="topbar-btn notif-dot">🔔</button>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters">
+  <div class="filter-chip active" onclick="setFilter(this)">🏃 Tous</div>
+  <div class="filter-chip" onclick="setFilter(this)">🏃 Running</div>
+  <div class="filter-chip" onclick="setFilter(this)">🎾 Padel</div>
+  <div class="filter-chip" onclick="setFilter(this)">⚽ Football</div>
+  <div class="filter-chip" onclick="setFilter(this)">💪 Muscu</div>
+  <div class="filter-chip" onclick="setFilter(this)">🥾 Rando</div>
+  <div class="filter-chip" onclick="setFilter(this)">🎾 Tennis</div>
+  <div class="filter-chip" onclick="setFilter(this)">🏊 Natation</div>
+  <div class="filter-chip" onclick="setFilter(this)">🚴 Cyclisme</div>
+  <div class="filter-chip" onclick="setFilter(this)">🧘 Yoga</div>
+  <div class="filter-chip" onclick="setFilter(this)">🥊 Boxe</div>
+  <div class="filter-chip" onclick="setFilter(this)">🏀 Basketball</div>
+  <div class="filter-chip" onclick="setFilter(this)">🏸 Badminton</div>
+  <div class="filter-chip" onclick="setFilter(this)">🧗 Escalade</div>
+  <div class="filter-chip" onclick="setFilter(this)">🏄 Surf</div>
+  <div class="filter-chip" onclick="setFilter(this)">⛷️ Ski</div>
+</div>
+
+<!-- CARD STACK -->
+<div class="card-stack" id="cardStack"></div>
+
+<!-- EMPTY STATE -->
+<div class="empty-state" id="emptyState">
+  <div class="empty-emoji">🏁</div>
+  <div class="empty-title">Plus de profils !</div>
+  <div class="empty-sub">Tu as vu tout le monde pour l'instant.<br>Reviens demain ou change tes filtres.</div>
+</div>
+
+<!-- ACTION BUTTONS -->
+<div class="action-buttons" id="actionButtons">
+  <button class="action-btn btn-skip" onclick="skipCard()" title="Passer">⏩</button>
+  <button class="action-btn btn-nope" onclick="swipeLeft()" title="Non merci">❌</button>
+  <button class="action-btn btn-like" onclick="swipeRight()" title="J'aime !">✅</button>
+  <button class="action-btn btn-super" onclick="superLike()" title="Super Like">⭐</button>
+</div>
+
+<!-- MATCH POPUP -->
+<div class="match-overlay" id="matchOverlay">
+  <div class="match-title">🎉 Match !</div>
+  <p class="match-sub">Vous vous êtes mutellement likés !</p>
+  <div class="match-avatars">
+    <div class="match-avatar" style="background:rgba(232,255,71,0.1)">🧑‍🦱</div>
+    <div class="match-heart">❤️</div>
+    <div class="match-avatar" id="matchAvatar" style="background:rgba(255,92,58,0.1)">🧑</div>
+  </div>
+  <button class="btn-message" onclick="closeMatch()">💬 Envoyer un message</button>
+  <button class="btn-continue" onclick="closeMatch()">Continuer à explorer</button>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-item"><span class="nav-icon">🏠</span><span>Accueil</span></div>
+  <div class="nav-item active"><span class="nav-icon">🔍</span><span>Explorer</span></div>
+  <div class="nav-item"><span class="nav-icon">❤️</span><span>Matches</span></div>
+  <div class="nav-item"><span class="nav-icon">💬</span><span>Messages</span></div>
+  <div class="nav-item"><span class="nav-icon">👤</span><span>Profil</span></div>
+</nav>
+
+<script>
+const profiles = [
+  { name:'Lucas', age:27, photo:'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=80', bg:'#1a2a1a', sport:'🏃 Running', level:'Intermédiaire', dist:'1.2 km', tags:['🏃 Running','⚽ Football'], bio:'Je cours 3x/semaine, je cherche quelqu\'un pour mes sorties du matin. Niveau intermédiaire, bon état d\'esprit !' },
+  { name:'Camille', age:24, photo:'https://images.unsplash.com/photo-1594381898411-846e7d193883?w=600&q=80', bg:'#1a1a2a', sport:'🎾 Padel', level:'Débutante', dist:'0.8 km', tags:['🎾 Padel','🥾 Rando'], bio:'Nouvelle sur le padel, je cherche une partenaire de double pour progresser ensemble et s\'amuser !' },
+  { name:'Maxime', age:31, photo:'https://images.unsplash.com/photo-1534367610401-9f5ed68180aa?w=600&q=80', bg:'#2a1a1a', sport:'💪 Muscu', level:'Avancé', dist:'2.1 km', tags:['💪 Muscu','🏃 Running'], bio:'Coach sportif le weekend, passionné de musculation et de running. Je cherche un partenaire motivé !' },
+  { name:'Sophie', age:29, photo:'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=600&q=80', bg:'#1a2a2a', sport:'🥾 Randonnée', level:'Intermédiaire', dist:'3.4 km', tags:['🥾 Rando','🎾 Tennis'], bio:'Je fais de la rando tous les weekends autour de Bordeaux. Je cherche quelqu\'un pour partager ces moments nature.' },
+  { name:'Thomas', age:26, photo:'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=600&q=80', bg:'#2a2a1a', sport:'🎾 Tennis', level:'Intermédiaire', dist:'1.7 km', tags:['🎾 Tennis','⚽ Football'], bio:'Passionné de tennis depuis 10 ans. Je cherche un partenaire régulier pour s\'entraîner.' },
+  { name:'Léa', age:23, photo:'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&q=80', bg:'#1a1a2a', sport:'🏃 Running', level:'Débutante', dist:'0.5 km', tags:['🏃 Running','🥾 Rando'], bio:'Je me remets au sport, running et rando. Je cherche quelqu\'un de bienveillant pour progresser.' },
+  { name:'Alexis', age:28, photo:'https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=600&q=80', bg:'#1a2a1a', sport:'🏊 Natation', level:'Avancé', dist:'2.8 km', tags:['🏊 Natation','🚴 Cyclisme'], bio:'Nageur compétiteur, je cherche un partenaire pour des sessions piscine tôt le matin.' },
+  { name:'Marie', age:25, photo:'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&q=80', bg:'#2a1a2a', sport:'🧘 Yoga', level:'Intermédiaire', dist:'1.1 km', tags:['🧘 Yoga','🥾 Rando'], bio:'Pratique le yoga depuis 3 ans, je cherche quelqu\'un pour des sessions outdoor ou en salle.' },
+];
+
+let currentIndex = 0;
+let isDragging = false;
+let startX = 0, startY = 0, currentX = 0;
+let activeCard = null;
+
+function buildCards() {
+  const stack = document.getElementById('cardStack');
+  stack.innerHTML = '';
+  const visible = profiles.slice(currentIndex, currentIndex + 3);
+  visible.forEach((p, i) => {
+    const card = createCard(p, i);
+    stack.appendChild(card);
+  });
+  if (visible.length === 0) {
+    document.getElementById('emptyState').classList.add('show');
+    document.getElementById('actionButtons').style.display = 'none';
+  }
+}
+
+function createCard(p, stackPos) {
+  const card = document.createElement('div');
+  card.className = 'profile-card ' + (stackPos === 0 ? 'front' : stackPos === 1 ? 'back1' : 'back2');
+  card.innerHTML = `
+    <div class="card-bg" style="background:${p.bg}">
+      <div class="card-gradient-bg" style="background:url('${p.photo}') center/cover no-repeat;font-size:0"></div>
+      <div class="card-overlay"></div>
+      <div class="card-top-badges">
+        <div class="badge-level">${getLevelIcon(p.level)} ${p.level}</div>
+        <div class="badge-dist">📍 ${p.dist}</div>
+      </div>
+      <div class="stamp like" id="stamp-like-${stackPos}">J'aime !</div>
+      <div class="stamp nope" id="stamp-nope-${stackPos}">Passer</div>
+      <div class="card-info">
+        <div class="card-name">${p.name}, ${p.age}</div>
+        <div class="card-sport-main">${p.sport}</div>
+        <div class="card-tags">
+          ${p.tags.map(t => `<div class="card-tag sport">${t}</div>`).join('')}
+        </div>
+        <div class="card-bio">${p.bio}</div>
+      </div>
+    </div>
+  `;
+  if (stackPos === 0) setupDrag(card);
+  return card;
+}
+
+function getLevelIcon(l) {
+  return l === 'Débutant' ? '🌱' : l === 'Intermédiaire' ? '⚡' : '🔥';
+}
+
+function setupDrag(card) {
+  card.addEventListener('mousedown', dragStart);
+  card.addEventListener('touchstart', dragStart, { passive: true });
+  document.addEventListener('mousemove', dragMove);
+  document.addEventListener('touchmove', dragMove, { passive: false });
+  document.addEventListener('mouseup', dragEnd);
+  document.addEventListener('touchend', dragEnd);
+}
+
+function dragStart(e) {
+  isDragging = true;
+  activeCard = document.querySelector('.profile-card.front');
+  const point = e.touches ? e.touches[0] : e;
+  startX = point.clientX;
+  startY = point.clientY;
+  currentX = 0;
+  activeCard.style.transition = 'none';
+}
+
+function dragMove(e) {
+  if (!isDragging || !activeCard) return;
+  if (e.cancelable) e.preventDefault();
+  const point = e.touches ? e.touches[0] : e;
+  currentX = point.clientX - startX;
+  const currentY = point.clientY - startY;
+  const rotate = currentX * 0.08;
+  activeCard.style.transform = `translateX(${currentX}px) translateY(${currentY * 0.3}px) rotate(${rotate}deg)`;
+
+  // Show stamps
+  const likeStamp = activeCard.querySelector('.stamp.like');
+  const nopeStamp = activeCard.querySelector('.stamp.nope');
+  const threshold = 40;
+  if (currentX > threshold) {
+    likeStamp.style.opacity = Math.min((currentX - threshold) / 80, 1);
+    nopeStamp.style.opacity = 0;
+  } else if (currentX < -threshold) {
+    nopeStamp.style.opacity = Math.min((-currentX - threshold) / 80, 1);
+    likeStamp.style.opacity = 0;
+  } else {
+    likeStamp.style.opacity = 0;
+    nopeStamp.style.opacity = 0;
+  }
+}
+
+function dragEnd() {
+  if (!isDragging || !activeCard) return;
+  isDragging = false;
+  activeCard.style.transition = '';
+
+  const threshold = 90;
+  if (currentX > threshold) {
+    doSwipeRight();
+  } else if (currentX < -threshold) {
+    doSwipeLeft();
+  } else {
+    activeCard.style.transform = '';
+    activeCard.querySelector('.stamp.like').style.opacity = 0;
+    activeCard.querySelector('.stamp.nope').style.opacity = 0;
+  }
+  activeCard = null;
+}
+
+function doSwipeRight() {
+  const card = document.querySelector('.profile-card.front');
+  if (!card) return;
+  card.classList.add('swipe-right');
+  setTimeout(() => {
+    currentIndex++;
+    buildCards();
+    // Random match (30%)
+    if (Math.random() < 0.3) {
+      const p = profiles[currentIndex - 1];
+      document.getElementById('matchAvatar').textContent = p ? p.avatar : '🧑';
+      setTimeout(() => document.getElementById('matchOverlay').classList.add('show'), 400);
+    }
+  }, 420);
+}
+
+function doSwipeLeft() {
+  const card = document.querySelector('.profile-card.front');
+  if (!card) return;
+  card.classList.add('swipe-left');
+  setTimeout(() => { currentIndex++; buildCards(); }, 420);
+}
+
+function swipeRight() {
+  const card = document.querySelector('.profile-card.front');
+  if (!card) return;
+  card.style.transform = 'translateX(40px)';
+  setTimeout(doSwipeRight, 80);
+}
+
+function swipeLeft() {
+  const card = document.querySelector('.profile-card.front');
+  if (!card) return;
+  card.style.transform = 'translateX(-40px)';
+  setTimeout(doSwipeLeft, 80);
+}
+
+function skipCard() {
+  currentIndex++;
+  if (currentIndex >= profiles.length) currentIndex = 0;
+  buildCards();
+}
+
+function superLike() {
+  const card = document.querySelector('.profile-card.front');
+  if (!card) return;
+  card.style.transform = 'translateY(-60px) scale(1.05)';
+  card.style.transition = 'transform 0.3s ease';
+  setTimeout(() => {
+    card.classList.add('swipe-right');
+    setTimeout(() => {
+      currentIndex++;
+      buildCards();
+      const p = profiles[currentIndex - 1];
+      document.getElementById('matchAvatar').textContent = p ? p.avatar : '🧑';
+      setTimeout(() => document.getElementById('matchOverlay').classList.add('show'), 400);
+    }, 420);
+  }, 200);
+}
+
+function closeMatch() {
+  document.getElementById('matchOverlay').classList.remove('show');
+}
+
+function setFilter(el) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  currentIndex = 0;
+  buildCards();
+}
+
+// Init
+buildCards();
+</script>
+</body>
+</html>

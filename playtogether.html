@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="PlayTogether"/>
+  <meta name="theme-color" content="#1a1a18"/>
+  <meta name="description" content="Trouve ton partenaire de sport idéal à Bordeaux. Running, padel, tennis, football, musculation, randonnée."/>
+  <title>PlayTogether – Trouve ton partenaire de sport</title>
+
+  <!-- PWA Manifest inline -->
+  <link rel="manifest" href="data:application/json,{
+    %22name%22:%22PlayTogether%22,
+    %22short_name%22:%22PlayTogether%22,
+    %22description%22:%22Trouve%20ton%20partenaire%20de%20sport%22,
+    %22start_url%22:%22/%22,
+    %22display%22:%22standalone%22,
+    %22background_color%22:%22%23f5f3ee%22,
+    %22theme_color%22:%22%231a1a18%22,
+    %22orientation%22:%22portrait%22
+  }"/>
+
+  <!-- Apple touch icon SVG inline -->
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%231a1a18'/><text y='130' x='20' font-size='110'>🏃</text></svg>"/>
+
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f3ee;
+      --dark: #1a1a18;
+      --accent: #e8ff47;
+      --accent2: #ff5c3a;
+      --gray: #7a7a70;
+      --border: #e0ddd5;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--dark);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: calc(16px + var(--safe-top)) 24px 16px;
+      background: rgba(245,243,238,0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 1.3rem;
+      color: var(--dark); user-select: none;
+    }
+    .logo span { color: var(--accent2); }
+    .nav-cta {
+      background: var(--dark); color: var(--accent);
+      border: none; padding: 10px 20px;
+      border-radius: 100px; font-family: 'DM Sans', sans-serif;
+      font-weight: 500; font-size: 0.85rem; cursor: pointer;
+      transition: transform 0.2s, background 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .nav-cta:active { transform: scale(0.96); background: var(--accent2); color: #fff; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100svh;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: flex-start;
+      padding: 100px 24px 60px;
+      position: relative; overflow: hidden;
+    }
+    .hero-bg-circle { position: absolute; border-radius: 50%; pointer-events: none; }
+    .hero-bg-circle.c1 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(232,255,71,0.2) 0%, transparent 70%);
+      top: -60px; right: -80px;
+      animation: float1 8s ease-in-out infinite;
+    }
+    .hero-bg-circle.c2 {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(255,92,58,0.13) 0%, transparent 70%);
+      bottom: 40px; left: 20px;
+      animation: float2 10s ease-in-out infinite;
+    }
+    @keyframes float1 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
+    @keyframes float2 { 0%,100%{transform:translateY(0)} 50%{transform:translateY(14px)} }
+
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--accent); color: var(--dark);
+      padding: 6px 14px; border-radius: 100px;
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em;
+      text-transform: uppercase; margin-bottom: 20px;
+      opacity: 0; animation: fadeUp 0.6s 0.2s forwards;
+    }
+    .hero-tag::before { content: '●'; color: var(--accent2); font-size: 0.55rem; }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.4rem, 10vw, 6.5rem);
+      font-weight: 800; line-height: 1.0;
+      margin-bottom: 20px;
+      opacity: 0; animation: fadeUp 0.7s 0.4s forwards;
+    }
+    h1 em { font-style: normal; color: var(--accent2); }
+
+    .hero-sub {
+      font-size: clamp(0.95rem, 3.5vw, 1.15rem);
+      color: var(--gray); line-height: 1.65;
+      margin-bottom: 36px; max-width: 420px;
+      opacity: 0; animation: fadeUp 0.7s 0.6s forwards;
+    }
+
+    .hero-actions {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      opacity: 0; animation: fadeUp 0.7s 0.8s forwards;
+      width: 100%;
+    }
+    .btn-primary {
+      background: var(--dark); color: var(--accent);
+      border: none; padding: 16px 28px; border-radius: 100px;
+      font-family: 'DM Sans', sans-serif; font-size: 1rem;
+      font-weight: 500; cursor: pointer; flex: 1; min-width: 160px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 20px rgba(26,26,24,0.15);
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-secondary {
+      background: transparent; color: var(--dark);
+      border: 1.5px solid var(--dark); padding: 15px 28px;
+      border-radius: 100px; font-family: 'DM Sans', sans-serif;
+      font-size: 1rem; font-weight: 500; cursor: pointer;
+      flex: 1; min-width: 160px;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .btn-secondary:active { background: var(--dark); color: var(--bg); }
+
+    .hero-stats {
+      display: flex; gap: 28px; margin-top: 48px; flex-wrap: wrap;
+      opacity: 0; animation: fadeUp 0.7s 1s forwards;
+    }
+    .stat-num {
+      font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800;
+    }
+    .stat-num span { color: var(--accent2); }
+    .stat-label { font-size: 0.78rem; color: var(--gray); margin-top: 2px; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── INSTALL BANNER (mobile) ── */
+    .install-banner {
+      display: none;
+      margin: 0 16px;
+      background: var(--dark); color: #fff;
+      border-radius: 16px; padding: 16px 20px;
+      align-items: center; gap: 14px;
+      font-size: 0.88rem; line-height: 1.4;
+    }
+    .install-banner.show { display: flex; }
+    .install-banner strong { color: var(--accent); font-family: 'Syne', sans-serif; }
+    .install-banner button {
+      background: var(--accent); color: var(--dark);
+      border: none; padding: 8px 16px; border-radius: 100px;
+      font-weight: 600; font-size: 0.8rem; cursor: pointer;
+      white-space: nowrap; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .install-banner .close-btn {
+      background: none; color: #666; padding: 4px;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+
+    /* ── SPORTS ── */
+    .sports-section {
+      padding: 72px 20px;
+      background: var(--dark);
+    }
+    .section-label {
+      font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: #555; margin-bottom: 12px;
+    }
+    .section-title {
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: clamp(1.8rem, 6vw, 3.2rem);
+      color: #fff; margin-bottom: 36px;
+      line-height: 1.15;
+    }
+    .section-title em { font-style: normal; color: var(--accent); }
+
+    .sports-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .sport-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px; padding: 20px 16px;
+      display: flex; flex-direction: column; gap: 8px;
+      transition: background 0.25s, transform 0.25s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .sport-card:active {
+      background: rgba(232,255,71,0.08);
+      transform: scale(0.97);
+    }
+    .sport-icon { font-size: 2rem; }
+    .sport-name {
+      font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: 1rem; color: #fff;
+    }
+    .sport-desc { font-size: 0.78rem; color: #666; line-height: 1.5; }
+    .sport-count {
+      display: inline-block;
+      background: rgba(232,255,71,0.12); color: var(--accent);
+      padding: 3px 10px; border-radius: 100px;
+      font-size: 0.7rem; font-weight: 500; margin-top: 4px;
+      width: fit-content;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how-section { padding: 72px 20px; background: var(--bg); }
+    .how-section .section-title { color: var(--dark); }
+    .steps-list { display: flex; flex-direction: column; gap: 0; margin-top: 36px; }
+    .step {
+      display: flex; gap: 20px; align-items: flex-start;
+      padding: 24px 0; border-bottom: 1px solid var(--border);
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      font-family: 'Syne', sans-serif; font-size: 2.5rem;
+      font-weight: 800; color: var(--border); line-height: 1;
+      flex-shrink: 0; width: 52px;
+    }
+    .step-content {}
+    .step-title {
+      font-family: 'Syne', sans-serif; font-weight: 700;
+      font-size: 1.05rem; margin-bottom: 6px;
+    }
+    .step-desc { color: var(--gray); line-height: 1.6; font-size: 0.9rem; }
+
+    /* ── PROFILES ── */
+    .profiles-section { padding: 72px 0; background: #fff; }
+    .profiles-section .section-label,
+    .profiles-section .section-title { padding: 0 20px; }
+    .profiles-section .section-title { color: var(--dark); }
+
+    .profiles-row {
+      display: flex; gap: 14px;
+      overflow-x: auto; padding: 36px 20px 16px;
+      scrollbar-width: none; scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    .profiles-row::-webkit-scrollbar { display: none; }
+    .profile-card {
+      min-width: 180px; max-width: 180px;
+      background: var(--bg); border-radius: 20px; padding: 20px 16px;
+      display: flex; flex-direction: column; gap: 10px;
+      border: 1px solid var(--border);
+      scroll-snap-align: start; flex-shrink: 0;
+      transition: transform 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .profile-card:active { transform: scale(0.97); }
+    .profile-avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+    }
+    .profile-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; }
+    .profile-age { font-size: 0.75rem; color: var(--gray); }
+    .profile-sport {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--dark); color: var(--accent);
+      padding: 4px 10px; border-radius: 100px;
+      font-size: 0.72rem; font-weight: 500; width: fit-content;
+    }
+    .profile-location { font-size: 0.75rem; color: var(--gray); }
+
+    /* ── CTA ── */
+    .cta-section {
+      padding: 80px 20px calc(80px + var(--safe-bottom));
+      background: var(--dark); text-align: center; position: relative; overflow: hidden;
+    }
+    .cta-glow {
+      position: absolute; width: 500px; height: 500px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(232,255,71,0.07) 0%, transparent 70%);
+      top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none;
+    }
+    .cta-section h2 {
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: clamp(2rem, 8vw, 4.5rem);
+      color: #fff; margin-bottom: 16px; position: relative;
+    }
+    .cta-section h2 em { font-style: normal; color: var(--accent); }
+    .cta-section > p { color: #666; font-size: 0.95rem; margin-bottom: 36px; position: relative; }
+
+    .email-form {
+      display: flex; flex-direction: column; gap: 12px;
+      position: relative; max-width: 360px; margin: 0 auto;
+    }
+    .email-form input {
+      padding: 16px 20px; border-radius: 100px;
+      border: 1.5px solid #333; background: #111;
+      color: #fff; font-family: 'DM Sans', sans-serif;
+      font-size: 1rem; outline: none; width: 100%;
+      -webkit-appearance: none;
+    }
+    .email-form input::placeholder { color: #555; }
+    .email-form input:focus { border-color: var(--accent); }
+    .email-form button {
+      background: var(--accent); color: var(--dark);
+      border: none; padding: 16px 28px; border-radius: 100px;
+      font-family: 'DM Sans', sans-serif; font-size: 1rem;
+      font-weight: 700; cursor: pointer; width: 100%;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .email-form button:active { transform: scale(0.98); }
+
+    /* ── BOTTOM NAV (mobile app feel) ── */
+    .bottom-nav {
+      display: none;
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      background: rgba(245,243,238,0.95);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border);
+      padding: 10px 0 calc(10px + var(--safe-bottom));
+      justify-content: space-around; align-items: center;
+    }
+    .bottom-nav-item {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      font-size: 0.65rem; color: var(--gray); cursor: pointer;
+      padding: 4px 16px; border-radius: 12px;
+      transition: color 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .bottom-nav-item .nav-icon { font-size: 1.4rem; }
+    .bottom-nav-item.active { color: var(--accent2); }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 24px 20px;
+      background: var(--dark);
+      border-top: 1px solid #222;
+      text-align: center; display: flex; flex-direction: column;
+      gap: 8px; align-items: center;
+    }
+    footer .logo { color: #fff; font-size: 1.1rem; }
+    footer p { font-size: 0.75rem; color: #555; }
+
+    /* ── DESKTOP overrides ── */
+    @media (min-width: 768px) {
+      nav { padding: 20px 48px; }
+      .hero { padding: 120px 48px 80px; }
+      h1 { font-size: clamp(3rem, 7vw, 6.5rem); }
+      .hero-actions { width: auto; }
+      .btn-primary, .btn-secondary { flex: none; }
+      .sports-section, .how-section, .cta-section { padding: 100px 48px; }
+      .profiles-section { padding: 100px 0; }
+      .profiles-section .section-label,
+      .profiles-section .section-title { padding: 0 48px; }
+      .profiles-row { padding: 36px 48px 16px; }
+      .sports-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+      .steps-list { flex-direction: row; gap: 40px; }
+      .step { flex-direction: column; border-bottom: none; padding: 0; }
+      .step-num { width: auto; }
+      .email-form { flex-direction: row; max-width: 560px; }
+      .email-form input { flex: 1; }
+      .email-form button { width: auto; }
+      footer { flex-direction: row; justify-content: space-between; padding: 32px 48px; }
+    }
+
+    @media (max-width: 767px) {
+      .bottom-nav { display: flex; }
+      body { padding-bottom: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Play<span>Together</span></div>
+  <button class="nav-cta" onclick="document.querySelector('.cta-section').scrollIntoView({behavior:'smooth'})">Rejoindre la bêta</button>
+</nav>
+
+<!-- INSTALL BANNER -->
+<div class="install-banner" id="installBanner">
+  <div style="flex:1">
+    <strong>Installer l'appli 📲</strong><br>
+    Ajoute PlayTogether à ton écran d'accueil !
+  </div>
+  <button id="installBtn">Installer</button>
+  <button class="close-btn" onclick="document.getElementById('installBanner').classList.remove('show')">✕</button>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-circle c1"></div>
+  <div class="hero-bg-circle c2"></div>
+  <div class="hero-tag">Nouveau en France 🇫🇷</div>
+  <h1>Trouve ton <em>partenaire</em> de sport idéal</h1>
+  <p class="hero-sub">PlayTogether connecte les sportifs qui partagent les mêmes passions. Running, padel, tennis… trouve quelqu'un avec qui pratiquer — et peut-être bien plus.</p>
+  <div class="hero-actions">
+    <button class="btn-primary">Créer mon profil</button>
+    <button class="btn-secondary">Comment ça marche</button>
+  </div>
+  <div class="hero-stats">
+    <div>
+      <div class="stat-num">6<span>+</span></div>
+      <div class="stat-label">Sports dispo</div>
+    </div>
+    <div>
+      <div class="stat-num">100<span>%</span></div>
+      <div class="stat-label">Gratuit</div>
+    </div>
+    <div>
+      <div class="stat-num">Bdx</div>
+      <div class="stat-label">En premier</div>
+    </div>
+  </div>
+</section>
+
+<!-- SPORTS -->
+<section class="sports-section">
+  <p class="section-label">Les sports</p>
+  <h2 class="section-title">Quel sport <em>te passionne</em> ?</h2>
+  <div class="sports-grid">
+    <div class="sport-card">
+      <div class="sport-icon">🏃</div>
+      <div class="sport-name">Running</div>
+      <div class="sport-desc">Cours à ton rythme avec quelqu'un de compatible.</div>
+      <span class="sport-count">Très populaire</span>
+    </div>
+    <div class="sport-card">
+      <div class="sport-icon">🎾</div>
+      <div class="sport-name">Padel</div>
+      <div class="sport-desc">Le sport en boom. Trouve ton partenaire de double.</div>
+      <span class="sport-count">En tendance 🔥</span>
+    </div>
+    <div class="sport-card">
+      <div class="sport-icon">⚽</div>
+      <div class="sport-name">Football</div>
+      <div class="sport-desc">Complète une équipe ou joue en 1v1.</div>
+      <span class="sport-count">Sport n°1</span>
+    </div>
+    <div class="sport-card">
+      <div class="sport-icon">💪</div>
+      <div class="sport-name">Musculation</div>
+      <div class="sport-desc">Un partenaire de salle, ça change tout.</div>
+      <span class="sport-count">Populaire</span>
+    </div>
+    <div class="sport-card">
+      <div class="sport-icon">🥾</div>
+      <div class="sport-name">Randonnée</div>
+      <div class="sport-desc">Les plus belles balades se font à deux.</div>
+      <span class="sport-count">Nature & zen</span>
+    </div>
+    <div class="sport-card">
+      <div class="sport-icon">🎾</div>
+      <div class="sport-name">Tennis</div>
+      <div class="sport-desc">Trouve un adversaire de ton niveau.</div>
+      <span class="sport-count">Classique</span>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section">
+  <p class="section-label">Comment ça marche</p>
+  <h2 class="section-title">Simple comme <em style="color:var(--accent2)">bonjour</em></h2>
+  <div class="steps-list">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-content">
+        <div class="step-title">Crée ton profil sportif</div>
+        <div class="step-desc">Indique tes sports, ton niveau, ta dispo et ta ville. En 2 minutes c'est fait.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-content">
+        <div class="step-title">Découvre des profils compatibles</div>
+        <div class="step-desc">On te suggère des personnes au même niveau, près de chez toi.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-content">
+        <div class="step-title">Joue ensemble !</div>
+        <div class="step-desc">Échange, planifie une session. Le sport fait le reste 😄</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROFILES -->
+<section class="profiles-section">
+  <p class="section-label">Aperçu</p>
+  <h2 class="section-title">Ils attendent <em style="color:var(--accent2)">leur partenaire</em></h2>
+  <div class="profiles-row">
+    <div class="profile-card">
+      <div class="profile-avatar" style="background:#fff0eb;">🧑</div>
+      <div class="profile-name">Lucas, 27</div>
+      <div class="profile-age">Intermédiaire</div>
+      <div class="profile-sport">🏃 Running</div>
+      <div class="profile-location">📍 Centre</div>
+    </div>
+    <div class="profile-card">
+      <div class="profile-avatar" style="background:#f0fff0;">👩</div>
+      <div class="profile-name">Camille, 24</div>
+      <div class="profile-age">Débutante</div>
+      <div class="profile-sport">🎾 Padel</div>
+      <div class="profile-location">📍 Mériadeck</div>
+    </div>
+    <div class="profile-card">
+      <div class="profile-avatar" style="background:#f0f0ff;">🧔</div>
+      <div class="profile-name">Maxime, 31</div>
+      <div class="profile-age">Avancé</div>
+      <div class="profile-sport">💪 Muscu</div>
+      <div class="profile-location">📍 Bègles</div>
+    </div>
+    <div class="profile-card">
+      <div class="profile-avatar" style="background:#fffff0;">👱‍♀️</div>
+      <div class="profile-name">Sophie, 29</div>
+      <div class="profile-age">Intermédiaire</div>
+      <div class="profile-sport">🥾 Rando</div>
+      <div class="profile-location">📍 Talence</div>
+    </div>
+    <div class="profile-card">
+      <div class="profile-avatar" style="background:#fff0f5;">🧑‍🦱</div>
+      <div class="profile-name">Thomas, 26</div>
+      <div class="profile-age">Intermédiaire</div>
+      <div class="profile-sport">🎾 Tennis</div>
+      <div class="profile-location">📍 Caudéran</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-glow"></div>
+  <h2>Prêt à <em>jouer ensemble</em> ?</h2>
+  <p>Inscris-toi à la bêta — sois parmi les premiers à Bordeaux.</p>
+  <div class="email-form">
+    <input type="email" placeholder="ton@email.fr" autocomplete="email"/>
+    <button>Rejoindre 🚀</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo">Play<span style="color:var(--accent2)">Together</span></div>
+  <p>© 2025 PlayTogether · Tous droits réservés</p>
+  <p style="color:#444">Fait avec ❤️ pour les sportifs</p>
+</footer>
+
+<!-- BOTTOM NAV (mobile) -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-item active">
+    <span class="nav-icon">🏠</span>
+    <span>Accueil</span>
+  </div>
+  <div class="bottom-nav-item">
+    <span class="nav-icon">🔍</span>
+    <span>Explorer</span>
+  </div>
+  <div class="bottom-nav-item">
+    <span class="nav-icon">💬</span>
+    <span>Messages</span>
+  </div>
+  <div class="bottom-nav-item">
+    <span class="nav-icon">👤</span>
+    <span>Profil</span>
+  </div>
+</nav>
+
+<script>
+  // PWA Install prompt
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('installBanner').classList.add('show');
+  });
+
+  document.getElementById('installBtn').addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    document.getElementById('installBanner').classList.remove('show');
+  });
+
+  // Bottom nav active state
+  document.querySelectorAll('.bottom-nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.bottom-nav-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    });
+  });
+
+  // Register Service Worker for PWA offline
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('data:application/javascript,' + encodeURIComponent(`
+      const CACHE = 'playtogether-v1';
+      self.addEventListener('install', e => {
+        self.skipWaiting();
+      });
+      self.addEventListener('fetch', e => {
+        e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+      });
+    `)).catch(() => {});
+  }
+</script>
+</body>
+</html>
