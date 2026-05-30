@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<title>PlayTogether – Trouve ton partenaire de sport</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #f5f3ee; color: #1a1a18; }
+
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; background: #f5f3ee; border-bottom: 1px solid #e0ddd5; }
+.logo { font-weight: 800; font-size: 1.3rem; color: #1a1a18; }
+.logo span { color: #ff5c3a; }
+.nav-cta { background: #1a1a18; color: #e8ff47; border: none; padding: 10px 18px; border-radius: 100px; font-weight: 700; font-size: 0.85rem; cursor: pointer; }
+
+.hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 90px 24px 80px; background: #f5f3ee; }
+.hero-tag { display: inline-flex; align-items: center; background: #e8ff47; color: #1a1a18; padding: 5px 12px; border-radius: 100px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; margin-bottom: 20px; width: fit-content; }
+h1 { font-size: 2.4rem; font-weight: 800; line-height: 1.05; margin-bottom: 18px; color: #1a1a18; }
+h1 em { font-style: normal; color: #ff5c3a; }
+.hero-sub { font-size: 1rem; color: #7a7a70; line-height: 1.65; margin-bottom: 32px; }
+.btn-primary { display: block; background: #1a1a18; color: #e8ff47; border: none; padding: 17px 28px; border-radius: 16px; font-weight: 700; font-size: 1rem; cursor: pointer; text-align: center; margin-bottom: 12px; width: 100%; }
+.btn-secondary { display: block; background: transparent; color: #1a1a18; border: 2px solid #1a1a18; padding: 15px 28px; border-radius: 16px; font-weight: 600; font-size: 1rem; cursor: pointer; text-align: center; width: 100%; }
+
+.hero-stats { display: flex; gap: 24px; margin-top: 40px; flex-wrap: wrap; }
+.stat-num { font-size: 1.8rem; font-weight: 800; line-height: 1; color: #1a1a18; }
+.stat-num span { color: #ff5c3a; }
+.stat-label { font-size: 0.75rem; color: #7a7a70; margin-top: 2px; }
+
+.sports-section { padding: 64px 24px; background: #1a1a18; }
+.section-label { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: #555; margin-bottom: 10px; }
+.section-title { font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 32px; line-height: 1.1; }
+.section-title em { font-style: normal; color: #e8ff47; }
+.sports-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sport-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 18px 14px; }
+.sport-icon { font-size: 1.8rem; margin-bottom: 8px; }
+.sport-name { font-weight: 700; font-size: 0.95rem; color: #fff; }
+.sport-desc { font-size: 0.75rem; color: #666; line-height: 1.4; margin-top: 4px; }
+.sport-badge { display: inline-block; margin-top: 8px; background: rgba(232,255,71,0.1); color: #e8ff47; padding: 3px 10px; border-radius: 100px; font-size: 0.68rem; font-weight: 600; }
+.more-sports { text-align: center; margin-top: 20px; color: #555; font-size: 0.82rem; }
+
+.how-section { padding: 64px 24px; background: #f5f3ee; }
+.how-section .section-title { color: #1a1a18; }
+.steps { display: flex; flex-direction: column; gap: 0; }
+.step { display: flex; gap: 16px; padding: 20px 0; border-bottom: 1px solid #e0ddd5; align-items: flex-start; }
+.step:last-child { border-bottom: none; }
+.step-num { font-size: 2.2rem; font-weight: 800; color: #e0ddd5; line-height: 1; flex-shrink: 0; width: 48px; }
+.step-title { font-weight: 700; font-size: 1rem; margin-bottom: 4px; color: #1a1a18; }
+.step-desc { font-size: 0.85rem; color: #7a7a70; line-height: 1.6; }
+
+.profiles-section { padding: 64px 0; background: #fff; }
+.profiles-section .section-label, .profiles-section .section-title { padding: 0 24px; }
+.profiles-section .section-title { color: #1a1a18; margin-bottom: 0; }
+.profiles-scroll { display: flex; gap: 12px; overflow-x: auto; padding: 24px 24px 12px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.profiles-scroll::-webkit-scrollbar { display: none; }
+.profile-card { min-width: 160px; flex-shrink: 0; background: #f5f3ee; border-radius: 20px; padding: 18px 14px; border: 1px solid #e0ddd5; }
+.p-avatar { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 10px; }
+.p-name { font-weight: 700; font-size: 0.9rem; color: #1a1a18; }
+.p-level { font-size: 0.72rem; color: #7a7a70; margin-top: 2px; }
+.p-sport { display: inline-flex; align-items: center; gap: 4px; background: #1a1a18; color: #e8ff47; padding: 4px 10px; border-radius: 100px; font-size: 0.7rem; font-weight: 600; margin-top: 8px; }
+.p-city { font-size: 0.72rem; color: #7a7a70; margin-top: 6px; }
+
+.cta-section { padding: 72px 24px; background: #1a1a18; text-align: center; }
+.cta-section h2 { font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 14px; }
+.cta-section h2 em { font-style: normal; color: #e8ff47; }
+.cta-section p { color: #666; font-size: 0.9rem; margin-bottom: 28px; }
+.email-form { display: flex; flex-direction: column; gap: 10px; max-width: 340px; margin: 0 auto; }
+.email-form input { padding: 15px 18px; border-radius: 14px; border: 1.5px solid #333; background: #111; color: #fff; font-size: 1rem; outline: none; -webkit-appearance: none; }
+.email-form input::placeholder { color: #555; }
+.email-form button { background: #e8ff47; color: #1a1a18; border: none; padding: 15px; border-radius: 14px; font-weight: 800; font-size: 1rem; cursor: pointer; }
+
+footer { background: #1a1a18; border-top: 1px solid #222; padding: 20px 24px; text-align: center; }
+footer .logo { color: #fff; }
+footer p { font-size: 0.72rem; color: #444; margin-top: 6px; }
+
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; background: #f5f3ee; border-top: 1px solid #e0ddd5; padding: 10px 0; display: flex; justify-content: space-around; align-items: center; }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 0.6rem; color: #7a7a70; cursor: pointer; padding: 4px 12px; }
+.nav-item .ni { font-size: 1.3rem; }
+.nav-item.active { color: #ff5c3a; }
+
+@media(min-width:600px) {
+  .sports-grid { grid-template-columns: repeat(3,1fr); }
+  .bottom-nav { display: none; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Play<span>Together</span></div>
+  <button class="nav-cta" onclick="document.querySelector('.cta-section').scrollIntoView({behavior:'smooth'})">Rejoindre la bêta</button>
+</nav>
+
+<section class="hero">
+  <div class="hero-tag">🇫🇷 Bêta · Bordeaux</div>
+  <h1>Trouve ton <em>partenaire</em> de sport idéal</h1>
+  <p class="hero-sub">PlayTogether connecte les sportifs qui partagent les mêmes passions. Running, padel, tennis… trouve quelqu'un pour pratiquer — et peut-être bien plus.</p>
+  <button class="btn-primary" onclick="document.querySelector('.cta-section').scrollIntoView({behavior:'smooth'})">Créer mon profil 🚀</button>
+  <button class="btn-secondary" onclick="document.querySelector('.how-section').scrollIntoView({behavior:'smooth'})">Comment ça marche</button>
+  <div class="hero-stats">
+    <div><div class="stat-num">30<span>+</span></div><div class="stat-label">Sports dispo</div></div>
+    <div><div class="stat-num">100<span>%</span></div><div class="stat-label">Gratuit</div></div>
+    <div><div class="stat-num">0<span>€</span></div><div class="stat-label">Pour démarrer</div></div>
+  </div>
+</section>
+
+<section class="sports-section">
+  <p class="section-label">Les sports</p>
+  <h2 class="section-title">Quel sport <em>te passionne</em> ?</h2>
+  <div class="sports-grid">
+    <div class="sport-card"><div class="sport-icon">🏃</div><div class="sport-name">Running</div><div class="sport-desc">Cours à ton rythme avec quelqu'un de compatible.</div><span class="sport-badge">Populaire</span></div>
+    <div class="sport-card"><div class="sport-icon">🎾</div><div class="sport-name">Padel</div><div class="sport-desc">Le sport en boom. Trouve ton partenaire.</div><span class="sport-badge">🔥 Tendance</span></div>
+    <div class="sport-card"><div class="sport-icon">⚽</div><div class="sport-name">Football</div><div class="sport-desc">Complète une équipe ou joue en 1v1.</div><span class="sport-badge">Sport n°1</span></div>
+    <div class="sport-card"><div class="sport-icon">💪</div><div class="sport-name">Musculation</div><div class="sport-desc">Un partenaire de salle change tout.</div><span class="sport-badge">Populaire</span></div>
+    <div class="sport-card"><div class="sport-icon">🥾</div><div class="sport-name">Randonnée</div><div class="sport-desc">Les plus belles balades se font à deux.</div><span class="sport-badge">Nature</span></div>
+    <div class="sport-card"><div class="sport-icon">🎾</div><div class="sport-name">Tennis</div><div class="sport-desc">Trouve un adversaire de ton niveau.</div><span class="sport-badge">Classique</span></div>
+    <div class="sport-card"><div class="sport-icon">🏊</div><div class="sport-name">Natation</div><div class="sport-desc">Sessions piscine en binôme motivant.</div><span class="sport-badge">Cardio</span></div>
+    <div class="sport-card"><div class="sport-icon">🚴</div><div class="sport-name">Cyclisme</div><div class="sport-desc">Sorties vélo à deux c'est plus fun.</div><span class="sport-badge">Outdoor</span></div>
+    <div class="sport-card"><div class="sport-icon">🧘</div><div class="sport-name">Yoga</div><div class="sport-desc">Pratique en duo pour plus de motivation.</div><span class="sport-badge">Zen</span></div>
+    <div class="sport-card"><div class="sport-icon">🥊</div><div class="sport-name">Boxe</div><div class="sport-desc">Trouve un sparring partner de qualité.</div><span class="sport-badge">Combat</span></div>
+    <div class="sport-card"><div class="sport-icon">🏀</div><div class="sport-name">Basketball</div><div class="sport-desc">1v1 ou compléter une équipe.</div><span class="sport-badge">Collectif</span></div>
+    <div class="sport-card"><div class="sport-icon">🏄</div><div class="sport-name">Surf</div><div class="sport-desc">Partage les vagues avec quelqu'un.</div><span class="sport-badge">Outdoor</span></div>
+  </div>
+  <p class="more-sports">+ 20 autres sports disponibles 🏅</p>
+</section>
+
+<section class="how-section">
+  <p class="section-label">Comment ça marche</p>
+  <h2 class="section-title">Simple comme <em style="color:#ff5c3a">bonjour</em></h2>
+  <div class="steps">
+    <div class="step"><div class="step-num">01</div><div><div class="step-title">Crée ton profil sportif</div><div class="step-desc">Indique tes sports, ton niveau, ta dispo et ta ville. En 2 minutes c'est fait.</div></div></div>
+    <div class="step"><div class="step-num">02</div><div><div class="step-title">Découvre des profils compatibles</div><div class="step-desc">Notre algorithme te propose des personnes au même niveau, près de chez toi, avec les mêmes dispos.</div></div></div>
+    <div class="step"><div class="step-num">03</div><div><div class="step-title">Joue ensemble !</div><div class="step-desc">Échange, planifie une session. Le sport fait le reste 😄</div></div></div>
+  </div>
+</section>
+
+<section class="profiles-section">
+  <p class="section-label">Aperçu</p>
+  <h2 class="section-title">Ils attendent <em style="color:#ff5c3a">leur partenaire</em></h2>
+  <div class="profiles-scroll">
+    <div class="profile-card"><div class="p-avatar" style="background:#fff0eb">🧑</div><div class="p-name">Lucas, 27</div><div class="p-level">Intermédiaire</div><div class="p-sport">🏃 Running</div><div class="p-city">📍 Centre</div></div>
+    <div class="profile-card"><div class="p-avatar" style="background:#f0fff0">👩</div><div class="p-name">Camille, 24</div><div class="p-level">Débutante</div><div class="p-sport">🎾 Padel</div><div class="p-city">📍 Mériadeck</div></div>
+    <div class="profile-card"><div class="p-avatar" style="background:#f0f0ff">🧔</div><div class="p-name">Maxime, 31</div><div class="p-level">Avancé</div><div class="p-sport">💪 Muscu</div><div class="p-city">📍 Bègles</div></div>
+    <div class="profile-card"><div class="p-avatar" style="background:#fffff0">👱‍♀️</div><div class="p-name">Sophie, 29</div><div class="p-level">Intermédiaire</div><div class="p-sport">🥾 Rando</div><div class="p-city">📍 Talence</div></div>
+    <div class="profile-card"><div class="p-avatar" style="background:#fff0f5">🧑‍🦱</div><div class="p-name">Thomas, 26</div><div class="p-level">Intermédiaire</div><div class="p-sport">🎾 Tennis</div><div class="p-city">📍 Caudéran</div></div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <h2>Prêt à <em>jouer ensemble</em> ?</h2>
+  <p>Inscris-toi à la bêta — sois parmi les premiers à Bordeaux.</p>
+  <div class="email-form">
+    <input type="email" placeholder="ton@email.fr"/>
+    <button onclick="submitBeta(this)">Rejoindre la bêta 🚀</button>
+  </div>
+</section>
+
+<footer>
+  <div class="logo">Play<span style="color:#ff5c3a">Together</span></div>
+  <p>© 2025 PlayTogether · Tous droits réservés · Fait avec ❤️ pour les sportifs</p>
+</footer>
+
+<nav class="bottom-nav">
+  <div class="nav-item active"><span class="ni">🏠</span><span>Accueil</span></div>
+  <div class="nav-item"><span class="ni">🔍</span><span>Explorer</span></div>
+  <div class="nav-item"><span class="ni">💬</span><span>Messages</span></div>
+  <div class="nav-item"><span class="ni">👤</span><span>Profil</span></div>
+</nav>
+
+<script>
+function submitBeta(btn) {
+  const input = btn.previousElementSibling;
+  if (!input.value || !input.value.includes('@')) {
+    input.style.borderColor = '#ff5c3a';
+    setTimeout(() => input.style.borderColor = '#333', 1500);
+    return;
+  }
+  btn.textContent = '✅ Inscrit !';
+  btn.style.background = '#4ade80';
+  btn.disabled = true;
+  input.disabled = true;
+}
+</script>
+</body>
+</html>
